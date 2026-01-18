@@ -12,7 +12,7 @@ def transcribe(audio_path: str, output_path: str):
     result = model.transcribe(audio_path, word_timestamps=True)
 
     writer = WriteVTT(output_path)
-    writer.write_result(result, audio_path)
+    writer(result, audio_path)
 
     return result["text"]
 
