@@ -1,21 +1,18 @@
-import subprocess
-import whisper
 import sys
 
+import whisper
 from whisper.transcribe import cli
-from whisper.utils import SubtitlesWriter, WriteVTT, get_writer
+from whisper.utils import WriteVTT
 
 
-def transcribe(audio_file: str):
+def transcribe(audio_path: str, output_path: str):
     model = whisper.load_model("turbo")
 
     print("Transcribing audio...")
-    result = model.transcribe(audio_file, word_timestamps=True)
+    result = model.transcribe(audio_path, word_timestamps=True)
 
-    writer = WriteVTT(".")
-
-    for i, (start, end, text) in enumerate(writer.iterate_result(result), start=1):
-        print(f"{i}\n{start} --> {end}\n{text}\n")
+    writer = WriteVTT(output_path)
+    writer.write_result(result, audio_path)
 
     return result["text"]
 
@@ -23,14 +20,24 @@ def transcribe(audio_file: str):
 def transcribe_cli():
     args = sys.argv[1:]
 
-    if len(args) != 1:
-        print("Example usage: python transcribe_cli audio.wav")
+    if len(args) != 2:
+        print("Example usage: python transcribe_cli audio.wav ~/Documents")
         return
 
     audio_path = args[0]
+    output_path = args[1]
 
-    # subprocess.run(["uv", "run", "transcribe.py", audio_path], check=True, capture_output=True, text=True)
+    # subprocess.run(
+    #     ["uv", "run", "transcribe.py", audio_path],
+    #     check=True,
+    #     capture_output=True,
+    #     text=True,
+    # )
 
-    result = transcribe(audio_path)
+    result = transcribe(audio_path, output_path)
 
     print(result)
+
+
+if __name__ == "__main__":
+    cli()
