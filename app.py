@@ -28,17 +28,16 @@ output_dir = st.text_input(
 def run_transcribe():
     destination = (
         os.path.expanduser(output_dir)
-        + f"/{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        + f"/transcriptions_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}"
     )
     os.makedirs(destination, exist_ok=True)
-    for uploaded_file in audio_files:
-        # Use the original filename
-        file_path = os.path.join(destination, uploaded_file.name)
-        # Save the uploaded file to disk
-        with open(file_path, "wb") as out_file:
-            out_file.write(uploaded_file.read())
-        # Pass the saved file path to transcribe
-        transcribe(file_path, destination)
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        for uploaded_file in audio_files:
+            temp_file_path = os.path.join(tmpdir, uploaded_file.name)
+            with open(temp_file_path, "wb") as out_file:
+                out_file.write(uploaded_file.read())
+            transcribe(temp_file_path, destination)
 
 
 run_disabled = not audio_files or not output_dir
