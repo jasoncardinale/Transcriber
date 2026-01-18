@@ -77,12 +77,13 @@ with tabs[2]:
     if folder and os.path.isdir(folder):
         vtt_files = [f for f in os.listdir(folder) if f.endswith(".vtt")]
         if vtt_files:
-            st.write(f"Found {len(vtt_files)} VTT file(s):")
+            st.write(f"Found {len(vtt_files)} transcription file(s):")
             for vtt_file in vtt_files:
                 file_path = os.path.join(folder, vtt_file)
                 with open(file_path, "r", encoding="utf-8") as f:
-                    st.subheader(vtt_file)
-                    st.text(f.read())
+                    with st.expander(vtt_file):
+                        st.text(f.read())
+
         else:
             st.info("No VTT files found in the last output directory.")
     else:
