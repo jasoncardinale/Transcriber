@@ -1,3 +1,4 @@
+from pathlib import Path
 import sys
 
 import whisper
@@ -9,12 +10,10 @@ def transcribe(audio_path: str, output_path: str):
     model = whisper.load_model("turbo")
 
     print("Transcribing audio...")
-    result = model.transcribe(audio_path, word_timestamps=True)
+    result = model.transcribe(audio_path)
 
     writer = WriteVTT(output_path)
     writer(result, audio_path)
-
-    return result["text"]
 
 
 def transcribe_cli():
@@ -34,9 +33,7 @@ def transcribe_cli():
     #     text=True,
     # )
 
-    result = transcribe(audio_path, output_path)
-
-    print(result)
+    transcribe(audio_path, output_path)
 
 
 if __name__ == "__main__":
