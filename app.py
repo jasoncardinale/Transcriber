@@ -65,13 +65,21 @@ with tabs[1]:
 
 with tabs[2]:
     st.header("View Transcriptions")
+
     last_destination = st.session_state.get("last_destination", "")
-    if last_destination and os.path.isdir(last_destination):
-        vtt_files = [f for f in os.listdir(last_destination) if f.endswith(".vtt")]
+
+    folder = st.text_input(
+        "Folder containing transcriptions",
+        placeholder="~/Documents",
+        value=last_destination,
+    )
+
+    if folder and os.path.isdir(folder):
+        vtt_files = [f for f in os.listdir(folder) if f.endswith(".vtt")]
         if vtt_files:
             st.write(f"Found {len(vtt_files)} VTT file(s):")
             for vtt_file in vtt_files:
-                file_path = os.path.join(last_destination, vtt_file)
+                file_path = os.path.join(folder, vtt_file)
                 with open(file_path, "r", encoding="utf-8") as f:
                     st.subheader(vtt_file)
                     st.text(f.read())
