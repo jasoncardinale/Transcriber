@@ -56,7 +56,7 @@ with tabs[1]:
             with open(file_path, "wb") as out_file:
                 out_file.write(uploaded_file.read())
             transcribe(file_path, destination)
-            # os.remove(file_path)
+
         st.session_state.last_destination = destination
         st.success("Transcription complete!")
 
