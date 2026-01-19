@@ -6,7 +6,7 @@ import streamlit as st
 
 from transcribe import transcribe
 
-st.title("Transcribe")
+st.title("Transcriber")
 
 # Shared state for files and output directory
 if "audio_files" not in st.session_state:
