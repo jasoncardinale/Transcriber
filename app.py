@@ -43,10 +43,7 @@ with tabs[0]:
     run_disabled = not audio_files or not output_dir
 
     def run_transcribe():
-        destination = (
-            os.path.expanduser(output_dir)
-            + f"/{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}"
-        )
+        destination = os.path.expanduser(output_dir)
         os.makedirs(destination, exist_ok=True)
         for uploaded_file in audio_files:
             file_path = os.path.join(destination, uploaded_file.name)
