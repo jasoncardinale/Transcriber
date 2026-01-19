@@ -4,7 +4,6 @@ from parser import parse_vtt
 from pathlib import Path
 
 import streamlit as st
-import streamlit.components.v1 as components
 
 from transcribe import transcribe
 
@@ -18,7 +17,7 @@ if "output_dir" not in st.session_state:
 if "last_destination" not in st.session_state:
     st.session_state.last_destination = ""
 
-tabs = st.tabs(["Upload", "Generate", "Read"])
+tabs = st.tabs(["Upload", "Read"])
 
 with tabs[0]:
     st.header("Upload Audio Files")
@@ -31,8 +30,7 @@ with tabs[0]:
         st.session_state.audio_files = audio_files
         st.success(f"{len(audio_files)} file(s) uploaded.")
 
-with tabs[1]:
-    st.header("Generate Transcriptions")
+    # st.header("Generate Transcriptions")
     output_dir = st.text_input(
         "Output directory",
         placeholder="~/Documents",
@@ -66,7 +64,7 @@ with tabs[1]:
     if not output_dir:
         st.info("Please set an output directory.")
 
-with tabs[2]:
+with tabs[1]:
     st.header("View Transcriptions")
 
     last_destination = st.session_state.get("last_destination", "")
