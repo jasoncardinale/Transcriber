@@ -1,4 +1,3 @@
-import datetime
 import os
 from parser import parse_vtt
 from pathlib import Path
