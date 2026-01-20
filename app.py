@@ -139,16 +139,17 @@ with tabs[1]:
                         autoplay=st.session_state[autoplay_key],
                     )
 
-                    for idx, (text, start, end) in enumerate(segments):
-                        start_sec = timestamp_to_seconds(start)
-                        if st.button(text, key=f"{audio}_{idx}"):
-                            st.session_state[seek_key] = start_sec
-                            st.session_state[autoplay_key] = True
-                            st.rerun()
-                        st.write(
-                            f"<span style='color: #888; font-size: 0.9em;'>[{start}]</span>",
-                            unsafe_allow_html=True,
-                        )
+                    with st.container(height=500):
+                        for idx, (text, start, end) in enumerate(segments):
+                            start_sec = timestamp_to_seconds(start)
+                            if st.button(text, key=f"{audio}_{idx}"):
+                                st.session_state[seek_key] = start_sec
+                                st.session_state[autoplay_key] = True
+                                st.rerun()
+                            st.write(
+                                f"<span style='color: #888; font-size: 0.9em;'>[{start}]</span>",
+                                unsafe_allow_html=True,
+                            )
         else:
             st.info("No transcription files found in the specified directory.")
     else:
