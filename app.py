@@ -21,17 +21,39 @@ if "output_dir" not in st.session_state:
 if "last_destination" not in st.session_state:
     st.session_state.last_destination = ""
 
-tabs = st.tabs(["Upload Audio", "View Transcriptions"])
+tabs = st.tabs(["Upload", "View Transcriptions"])
 
 with tabs[0]:
-    st.header("Step 1: Upload Your Audio Files")
+    st.header("Step 1: Upload Your Audio/Video Files")
     st.markdown("""
-    Select one or more audio files from your computer to transcribe.
+    Select one or more files from your computer to transcribe.
     """)
     audio_files = st.file_uploader(
-        "Click 'Browse files' and select your audio recordings.",
+        "Click 'Browse files' and select your audio or video recordings.",
         accept_multiple_files=True,
-        type=["mp3", "wav", "m4a"],
+        type=[
+            "wav",
+            "mp3",
+            "m4a",
+            "aac",
+            "ogg",
+            "flac",
+            "opus",
+            "wma",
+            "alac",
+            "amr",
+            "aiff",
+            "caf",
+            "mp4",
+            "mov",
+            "avi",
+            "mkv",
+            "webm",
+            "flv",
+            "wmv",
+            "mpeg",
+            "m4v",
+        ],
     )
     if audio_files:
         st.session_state.audio_files = audio_files
@@ -48,7 +70,7 @@ with tabs[0]:
     """)
     output_dir = st.text_input(
         "Output folder (where your transcriptions will be saved):",
-        placeholder="~/Documents",
+        placeholder="~/Documents/Transcriptions",
         value=st.session_state.output_dir,
     )
     if output_dir:
@@ -63,11 +85,14 @@ with tabs[0]:
         destination = os.path.expanduser(output_dir)
         os.makedirs(destination, exist_ok=True)
         for uploaded_file in audio_files:
-            file_path = os.path.join(destination, uploaded_file.name)
-            uploaded_file.seek(0)
-            with open(file_path, "wb") as out_file:
-                out_file.write(uploaded_file.read())
-            transcribe(file_path, destination)
+            try:
+                file_path = os.path.join(destination, uploaded_file.name)
+                uploaded_file.seek(0)
+                with open(file_path, "wb") as out_file:
+                    out_file.write(uploaded_file.read())
+                transcribe(file_path, destination)
+            except Exception as e:
+                st.error(f"Unable to transcribe {uploaded_file.name} at this time: {e}")
 
         st.session_state.last_destination = destination
         st.success("Transcription complete!")
