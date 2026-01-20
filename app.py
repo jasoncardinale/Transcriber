@@ -6,7 +6,12 @@ import streamlit as st
 
 from transcribe import transcribe
 
-st.title("Transcriber")
+st.title("Audio Transcription Tool")
+st.markdown("""
+Welcome! This app lets you easily transcribe your audio recordings into text.
+Just upload your audio files, choose where to save the results, and generate your transcriptions.
+You can also review and listen to your transcriptions right here.
+""")
 
 # Shared state for files and output directory
 if "audio_files" not in st.session_state:
@@ -16,27 +21,40 @@ if "output_dir" not in st.session_state:
 if "last_destination" not in st.session_state:
     st.session_state.last_destination = ""
 
-tabs = st.tabs(["Upload", "Read"])
+tabs = st.tabs(["Upload Audio", "View Transcriptions"])
 
 with tabs[0]:
-    st.header("Upload Audio Files")
+    st.header("Step 1: Upload Your Audio Files")
+    st.markdown("""
+    Select one or more audio files from your computer to transcribe.
+    """)
     audio_files = st.file_uploader(
-        "Select audio files",
+        "Click 'Browse files' and select your audio recordings.",
         accept_multiple_files=True,
         type=["mp3", "wav", "m4a"],
     )
     if audio_files:
         st.session_state.audio_files = audio_files
-        st.success(f"{len(audio_files)} file(s) uploaded.")
+        st.success(
+            f"Uploaded {len(audio_files)} file(s). You can now proceed to the next step."
+        )
+    else:
+        st.info("No files uploaded yet. Please select your audio files above.")
 
-    # st.header("Generate Transcriptions")
+    st.header("Step 2: Generate Transcriptions")
+    st.markdown("""
+    Choose a folder where you want your transcription files to be saved.
+    Then click **Run** to start the transcription process.
+    """)
     output_dir = st.text_input(
-        "Output directory",
+        "Output folder (where your transcriptions will be saved):",
         placeholder="~/Documents",
         value=st.session_state.output_dir,
     )
     if output_dir:
         st.session_state.output_dir = output_dir
+    else:
+        st.info("Please enter a folder where your transcriptions will be saved.")
 
     audio_files = st.session_state.get("audio_files", [])
     run_disabled = not audio_files or not output_dir
@@ -54,20 +72,26 @@ with tabs[0]:
         st.session_state.last_destination = destination
         st.success("Transcription complete!")
 
-    st.button("Run", disabled=run_disabled, on_click=run_transcribe)
-    if not audio_files:
-        st.info("Please upload audio files first.")
-    if not output_dir:
-        st.info("Please set an output directory.")
+    st.button(
+        "Run",
+        disabled=run_disabled,
+        on_click=run_transcribe,
+        help="Click to start transcribing your uploaded audio files.",
+    )
 
 with tabs[1]:
-    st.header("View Transcriptions")
+    st.header("View and Listen to Your Transcriptions")
+    st.markdown("""
+    Enter the folder where your transcriptions are saved to review your results.
+    You can listen to the original audio and read the transcribed text.
+    Click on any transcript segment to jump to that part of the audio!
+    """)
 
     last_destination = st.session_state.get("last_destination", "")
 
     folder = st.text_input(
-        "Folder containing transcriptions",
-        placeholder="~/Documents",
+        "Folder containing your transcriptions",
+        placeholder="~/Documents/Transcriptions",
         value=last_destination,
     )
 
