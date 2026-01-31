@@ -33,7 +33,7 @@ AUDIO_VIDEO_EXTS = [
 def timestamp_to_seconds(ts):
     m, s = ts.split(":")
     s, ms = s.split(".")
-    return int(m) * 60 + int(s) + int(ms) / 1000
+    return int(m) * 60 + int(s) + int(ms) // 1000
 
 
 def main(page: ft.Page):
@@ -57,10 +57,11 @@ def main(page: ft.Page):
     run_message = ft.Text("")
     view_message = ft.Text("")
     segment_controls = ft.Column(scroll=ft.ScrollMode.ALWAYS, expand=True)
+
     audio_player = fta.Audio(src="", autoplay=False)
 
     # --- Upload Tab ---
-    async def handle_pick_files(e: ft.Event[ft.Button]):
+    async def select_files(_: ft.Event[ft.Button]):
         nonlocal audio_files
         files = (
             await ft.FilePicker().pick_files(
@@ -80,27 +81,13 @@ def main(page: ft.Page):
             upload_message.color = "grey"
         page.update()
 
-    page.overlay.append(
-        ft.Button(
-            content="Pick files", icon=ft.Icons.UPLOAD_FILE, on_click=handle_pick_files
-        )
-    )
-
-    async def handle_get_directory_path(e: ft.Event[ft.Button]):
+    async def select_output_directory(_: ft.Event[ft.Button]):
         nonlocal output_dir
         directory = await ft.FilePicker().get_directory_path()
         if directory:
             output_dir_input.value = directory
             output_dir = directory
             page.update()
-
-    page.overlay.append(
-        ft.Button(
-            content="Select Output Folder",
-            icon=ft.Icons.FOLDER,
-            on_click=handle_get_directory_path,
-        )
-    )
 
     output_dir_input = ft.TextField(
         label="Output folder (where your transcriptions will be saved):", width=600
@@ -164,9 +151,7 @@ def main(page: ft.Page):
                 [
                     ft.ElevatedButton(
                         "Browse Files",
-                        on_click=lambda _: file_picker.pick_files(
-                            allow_multiple=True, allowed_extensions=AUDIO_VIDEO_EXTS
-                        ),
+                        on_click=select_files,
                     ),
                 ]
             ),
@@ -184,7 +169,7 @@ def main(page: ft.Page):
                     output_dir_input,
                     ft.ElevatedButton(
                         "Browse Folder",
-                        on_click=lambda _: output_folder_picker.get_directory_path(),
+                        on_click=select_output_directory,
                     ),
                 ]
             ),
@@ -202,14 +187,12 @@ def main(page: ft.Page):
     )
 
     # --- View Tab ---
-    def pick_view_folder_result(e: ft.FilePickerResultEvent):
-        if e.path:
-            view_folder_input.value = e.path
+    async def select_viewed_directory(_):
+        directory = await ft.FilePicker().get_directory_path()
+        if directory:
+            view_folder_input.value = directory
             refresh_view_tab()
             page.update()
-
-    view_folder_picker = ft.FilePicker(on_result=pick_view_folder_result)
-    page.overlay.append(view_folder_picker)
 
     view_folder_input = ft.TextField(
         label="Folder containing your transcriptions", width=600
@@ -263,7 +246,7 @@ def main(page: ft.Page):
             )
             view_message.color = "grey"
         segment_controls.controls.clear()
-        audio_player.visible = False
+        # audio_player.visible = False
         page.update()
 
     def show_transcription(vtt_name):
@@ -278,16 +261,18 @@ def main(page: ft.Page):
         segment_controls.controls.clear()
         if audio_path and os.path.exists(audio_path):
             audio_player.src = audio_path
-            audio_player.visible = True
-        else:
-            audio_player.visible = False
+            # audio_player.visible = True
+        # else:
+        # audio_player.visible = False
         for idx, (text, start, end) in enumerate(segments):
 
             def make_on_click(seek_time):
-                def _on_click(e):
-                    if audio_player.visible:
-                        audio_player.seek(timestamp_to_seconds(seek_time))
-                        audio_player.play()
+                async def _on_click(e):
+                    # if audio_player.visible:
+                    await audio_player.seek(
+                        ft.Duration(seconds=timestamp_to_seconds(seek_time))
+                    )
+                    await audio_player.play()
 
                 return _on_click
 
@@ -295,8 +280,8 @@ def main(page: ft.Page):
                 ft.TextButton(
                     f"[{start}] {text}",
                     style=ft.ButtonStyle(
-                        color={"": "#0078ff"},
-                        bgcolor={"": "#e3f0ff"},
+                        # color={"": "#0078ff"},
+                        # bgcolor={"": "#e3f0ff"},
                         padding=10,
                         shape=ft.RoundedRectangleBorder(radius=6),
                     ),
@@ -307,7 +292,11 @@ def main(page: ft.Page):
 
     view_tab = ft.Column(
         [
-            ft.Text("View and Listen to Your Transcriptions", size=22, weight="bold"),
+            ft.Text(
+                "View and Listen to Your Transcriptions",
+                size=22,
+                weight=ft.FontWeight.BOLD,
+            ),
             ft.Text(
                 "Enter the folder where your transcriptions are saved to review your results.\n"
                 "You can listen to the original audio and read the transcribed text.\n"
@@ -319,26 +308,34 @@ def main(page: ft.Page):
                     view_folder_input,
                     ft.ElevatedButton(
                         "Browse Folder",
-                        on_click=lambda _: view_folder_picker.get_directory_path(),
+                        on_click=select_viewed_directory,
                     ),
                 ]
             ),
             view_message,
             vtt_list,
-            audio_player,
-            ft.Text("Transcript Segments:", size=16, weight="bold"),
+            ft.Text("Transcript Segments:", size=16, weight=ft.FontWeight.BOLD),
             segment_controls,
         ],
-        scroll="auto",
+        scroll=ft.ScrollMode.AUTO,
         expand=True,
     )
 
     tabs = ft.Tabs(
         selected_index=0,
-        tabs=[
-            ft.Tab(text="Upload Audio/Video", content=upload_tab),
-            ft.Tab(text="View Transcriptions", content=view_tab),
-        ],
+        length=2,
+        content=ft.Column(
+            expand=True,
+            controls=[
+                ft.TabBar(
+                    tabs=[
+                        ft.Tab(label="Upload Audio/Video"),
+                        ft.Tab(label="View Transcriptions"),
+                    ]
+                ),
+                ft.TabBarView(expand=True, controls=[upload_tab, view_tab]),
+            ],
+        ),
         expand=True,
     )
 
