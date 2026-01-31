@@ -56,6 +56,7 @@ def main(page: ft.Page):
     # --- Upload Tab ---
     async def select_files(_: ft.Event[ft.Button]):
         nonlocal audio_files
+
         files = await ft.FilePicker().pick_files(
             allow_multiple=True,
             allowed_extensions=AUDIO_VIDEO_EXTS,
@@ -89,15 +90,18 @@ def main(page: ft.Page):
 
     def run_transcribe(e):
         nonlocal last_destination
+
         output_dir_value = output_dir_input.value
+
         if not audio_files or not output_dir_value:
             run_message.value = "Please select files and output folder."
             run_message.color = "red"
             page.update()
             return
+
         destination = os.path.expanduser(output_dir_value)
         os.makedirs(destination, exist_ok=True)
-        errors = []
+        errors: list[str] = []
         for file_path in audio_files:
             filename = None
             try:
@@ -108,6 +112,7 @@ def main(page: ft.Page):
                 transcribe(dest_path, destination)
             except Exception as ex:
                 errors.append(f"Unable to transcribe {filename}: {ex}")
+
         last_destination = destination
         if errors:
             run_message.value = "\n".join(errors)
@@ -184,7 +189,9 @@ def main(page: ft.Page):
     )
 
     def make_segment_click(seek_time):
-        async def _on_click(e):
+        nonlocal audio_player
+
+        async def _on_click():
             if audio_player:
                 await audio_player.seek(
                     ft.Duration(seconds=timestamp_to_seconds(seek_time))
@@ -195,6 +202,7 @@ def main(page: ft.Page):
 
     def show_transcription(vtt_name: str):
         nonlocal segments, selected_vtt, audio_player
+
         folder = selected_folder
         audio_file = file_pairs.get(vtt_name)
         file_path = os.path.join(folder, vtt_name)
@@ -202,8 +210,10 @@ def main(page: ft.Page):
         selected_vtt = file_path
         segments = parse_vtt(file_path)
         segment_controls.controls.clear()
+
         if audio_path and os.path.exists(audio_path):
             audio_player = fta.Audio(src=audio_path, autoplay=False)
+
         for text, start, _ in segments:
             segment_controls.controls.append(
                 ft.TextButton(
@@ -215,25 +225,31 @@ def main(page: ft.Page):
                     on_click=make_segment_click(start),
                 )
             )
+
         page.update()
 
     def refresh_view_tab():
         nonlocal file_pairs, selected_folder
+
         folder = view_dir_input.value or last_destination
         selected_folder = folder
         vtt_list.controls.clear()
         file_pairs.clear()
+
         if folder and os.path.isdir(folder):
             dir_files = os.listdir(folder)
             vtt_files = [f for f in dir_files if f.endswith(".vtt")]
+
             for vtt_name in vtt_files:
                 vtt_stem = Path(vtt_name).stem
                 audio_file = None
                 for f in dir_files:
                     p = Path(f)
+
                     if p.stem == vtt_stem and p.suffix != ".vtt":
                         audio_file = f
                         break
+
                 file_pairs[vtt_name] = audio_file
                 vtt_list.controls.append(
                     ft.ListTile(
@@ -244,6 +260,7 @@ def main(page: ft.Page):
                         on_click=lambda e, vtt=vtt_name: show_transcription(vtt),
                     )
                 )
+
             if file_pairs:
                 view_message.value = f"Found {len(file_pairs)} transcription file(s). Select one to view."
                 view_message.color = "green"
@@ -257,10 +274,11 @@ def main(page: ft.Page):
                 "No transcriptions to view yet. Run a transcription first."
             )
             view_message.color = "grey"
+
         segment_controls.controls.clear()
         page.update()
 
-    async def select_viewed_directory(_):
+    async def select_viewed_directory():
         directory = await ft.FilePicker().get_directory_path()
         if directory:
             view_dir_input.value = directory
@@ -291,7 +309,7 @@ def main(page: ft.Page):
             ),
             view_message,
             vtt_list,
-            ft.Text("Transcript Segments:", size=16, weight=ft.FontWeight.BOLD),
+            ft.Text("Transcript:", size=16, weight=ft.FontWeight.BOLD),
             segment_controls,
         ],
         scroll=ft.ScrollMode.AUTO,

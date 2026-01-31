@@ -146,9 +146,7 @@ with tabs[1]:
                 file_path = os.path.join(folder, vtt_name)
                 audio_path = os.path.join(folder, audio) if audio else None
                 with st.expander(vtt_name):
-                    # if audio_path:
-                    # st.audio(audio_path)
-                    segments = parse_vtt(file_path, audio)
+                    segments = parse_vtt(file_path)
 
                     seek_key = f"seek_{audio}"
                     if seek_key not in st.session_state:
