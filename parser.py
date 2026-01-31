@@ -1,7 +1,7 @@
 import re
 
 
-def parse_vtt(transcription_path: str, audio_path: str | None):
+def parse_vtt(transcription_path: str):
     results: list[tuple[str, str, str]] = []
     timestamp_re = re.compile(r"(\d{2}:\d{2}\.\d{3})\s*-->\s*(\d{2}:\d{2}\.\d{3})")
 

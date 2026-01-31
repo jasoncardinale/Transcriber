@@ -4,6 +4,7 @@ import flet as ft
 import flet_audio as fta
 from parser import parse_vtt
 from transcribe import transcribe
+from utils import timestamp_to_seconds
 
 AUDIO_VIDEO_EXTS = [
     "wav",
@@ -30,26 +31,19 @@ AUDIO_VIDEO_EXTS = [
 ]
 
 
-def timestamp_to_seconds(ts):
-    m, s = ts.split(":")
-    s, ms = s.split(".")
-    return int(m) * 60 + int(s) + int(ms) // 1000
-
-
 def main(page: ft.Page):
     page.title = "Audio Transcription Tool"
     page.width = 1100
     page.height = 800
 
     # State
-    audio_files = []
-    output_dir = ""
-    last_destination = ""
-    file_pairs = {}
-    segments = []
-    selected_folder = ""
-    selected_audio = ""
-    selected_vtt = ""
+    audio_files: list[str] = []
+    output_dir: str = ""
+    last_destination: str = ""
+    file_pairs: dict[str, str | None] = {}
+    segments: list[tuple[str, str, str]] = []
+    selected_folder: str = ""
+    selected_vtt: str = ""
     upload_message = ft.Text(
         "No files uploaded yet. Please select your audio files above.", color="grey"
     )
@@ -61,17 +55,16 @@ def main(page: ft.Page):
 
     # --- Upload Tab ---
     async def select_files(_: ft.Event[ft.Button]):
-        print("select_files handler called!")  # DEBUG
         nonlocal audio_files
         files = await ft.FilePicker().pick_files(
             allow_multiple=True,
             allowed_extensions=AUDIO_VIDEO_EXTS,
         )
-        print(f"pick_files returned: {files}")  # DEBUG
         if files:
             audio_files.clear()
             for f in files:
-                audio_files.append(f.path)
+                if f.path:
+                    audio_files.append(f.path)
             upload_message.value = f"Uploaded {len(audio_files)} file(s). You can now proceed to the next step."
             upload_message.color = "green"
         else:
@@ -197,21 +190,21 @@ def main(page: ft.Page):
                     ft.Duration(seconds=timestamp_to_seconds(seek_time))
                 )
                 await audio_player.play()
+
         return _on_click
 
-    def show_transcription(vtt_name):
-        nonlocal segments, selected_audio, selected_vtt, audio_player
+    def show_transcription(vtt_name: str):
+        nonlocal segments, selected_vtt, audio_player
         folder = selected_folder
         audio_file = file_pairs.get(vtt_name)
         file_path = os.path.join(folder, vtt_name)
         audio_path = os.path.join(folder, audio_file) if audio_file else None
-        selected_audio = audio_path
         selected_vtt = file_path
-        segments = parse_vtt(file_path, audio_file)
+        segments = parse_vtt(file_path)
         segment_controls.controls.clear()
         if audio_path and os.path.exists(audio_path):
             audio_player = fta.Audio(src=audio_path, autoplay=False)
-        for idx, (text, start, end) in enumerate(segments):
+        for text, start, _ in segments:
             segment_controls.controls.append(
                 ft.TextButton(
                     f"[{start}] {text}",
