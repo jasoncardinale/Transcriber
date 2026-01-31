@@ -1,8 +1,10 @@
 import os
+from parser import parse_vtt
 from pathlib import Path
+
 import flet as ft
 import flet_audio as fta
-from parser import parse_vtt
+
 from transcribe import transcribe
 from utils import timestamp_to_seconds
 
@@ -33,8 +35,8 @@ AUDIO_VIDEO_EXTS = [
 
 def main(page: ft.Page):
     page.title = "Audio Transcription Tool"
-    page.width = 1100
-    page.height = 800
+    page.window.width = 800
+    page.window.height = 700
 
     # State
     audio_files: list[str] = []
@@ -88,7 +90,7 @@ def main(page: ft.Page):
         width=600,
     )
 
-    def run_transcribe(e):
+    def run_transcribe():
         nonlocal last_destination
 
         output_dir_value = output_dir_input.value
@@ -98,22 +100,26 @@ def main(page: ft.Page):
             run_message.color = "red"
             page.update()
             return
+        else:
+            run_message.value = ""
+            run_message.color = ""
+            page.update()
 
-        destination = os.path.expanduser(output_dir_value)
-        os.makedirs(destination, exist_ok=True)
+        transcription_path = os.path.expanduser(output_dir_value)
+        os.makedirs(transcription_path, exist_ok=True)
         errors: list[str] = []
         for file_path in audio_files:
             filename = None
             try:
                 filename = os.path.basename(file_path)
-                dest_path = os.path.join(destination, filename)
-                with open(file_path, "rb") as src, open(dest_path, "wb") as dst:
+                audio_path = os.path.join(transcription_path, filename)
+                with open(file_path, "rb") as src, open(audio_path, "wb") as dst:
                     dst.write(src.read())
-                transcribe(dest_path, destination)
-            except Exception as ex:
-                errors.append(f"Unable to transcribe {filename}: {ex}")
+                transcribe(audio_path, transcription_path)
+            except Exception as e:
+                errors.append(f"Unable to transcribe {filename}: {e}")
 
-        last_destination = destination
+        last_destination = transcription_path
         if errors:
             run_message.value = "\n".join(errors)
             run_message.color = "red"
@@ -170,7 +176,7 @@ def main(page: ft.Page):
             ft.Button(
                 "Run",
                 on_click=run_transcribe,
-                bgcolor="#0078ff",
+                bgcolor="blue",
                 color="white",
                 width=200,
             ),
@@ -278,6 +284,8 @@ def main(page: ft.Page):
         segment_controls.controls.clear()
         page.update()
 
+    view_dir_input.on_change = refresh_view_tab
+
     async def select_viewed_directory():
         directory = await ft.FilePicker().get_directory_path()
         if directory:
@@ -309,7 +317,7 @@ def main(page: ft.Page):
             ),
             view_message,
             vtt_list,
-            ft.Text("Transcript:", size=16, weight=ft.FontWeight.BOLD),
+            ft.Text("Transcript", size=16, weight=ft.FontWeight.BOLD),
             segment_controls,
         ],
         scroll=ft.ScrollMode.AUTO,
@@ -324,8 +332,8 @@ def main(page: ft.Page):
             controls=[
                 ft.TabBar(
                     tabs=[
-                        ft.Tab(label="Upload Audio/Video"),
-                        ft.Tab(label="View Transcriptions"),
+                        ft.Tab(label="Upload Audio/Video", icon=ft.Icons.UPLOAD_FILE),
+                        ft.Tab(label="View Transcriptions", icon=ft.Icons.TRANSCRIBE),
                     ]
                 ),
                 ft.TabBarView(expand=True, controls=[upload_tab, view_tab]),
