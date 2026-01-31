@@ -187,7 +187,7 @@ def main(page: ft.Page):
     )
 
     # --- View Tab ---
-    vtt_list = ft.ListView(expand=True, spacing=4, height=200)
+    vtt_list = ft.ListView(expand=True, spacing=4, height=200, visible=False)
 
     view_dir_input = ft.TextField(
         label="Folder containing your transcriptions",
@@ -281,6 +281,8 @@ def main(page: ft.Page):
             )
             view_message.color = "grey"
 
+        vtt_list.visible = bool(vtt_list.controls)
+
         segment_controls.controls.clear()
         page.update()
 
@@ -317,7 +319,7 @@ def main(page: ft.Page):
             ),
             view_message,
             vtt_list,
-            ft.Text("Transcript", size=16, weight=ft.FontWeight.BOLD),
+            ft.Text("Transcript", size=22, weight=ft.FontWeight.BOLD),
             segment_controls,
         ],
         scroll=ft.ScrollMode.AUTO,
