@@ -50,7 +50,6 @@ def main(page: ft.Page):
     selected_folder = ""
     selected_audio = ""
     selected_vtt = ""
-    status_message = ft.Text("", color="green")
     upload_message = ft.Text(
         "No files uploaded yet. Please select your audio files above.", color="grey"
     )
@@ -62,12 +61,13 @@ def main(page: ft.Page):
 
     # --- Upload Tab ---
     async def select_files(_: ft.Event[ft.Button]):
+        print("select_files handler called!")  # DEBUG
         nonlocal audio_files
-        files = (
-            await ft.FilePicker().pick_files(
-                allow_multiple=True, allowed_extensions=AUDIO_VIDEO_EXTS
-            ),
-        )[0]
+        files = await ft.FilePicker().pick_files(
+            allow_multiple=True,
+            allowed_extensions=AUDIO_VIDEO_EXTS,
+        )
+        print(f"pick_files returned: {files}")  # DEBUG
         if files:
             audio_files.clear()
             for f in files:
@@ -149,7 +149,7 @@ def main(page: ft.Page):
             ),
             ft.Row(
                 [
-                    ft.ElevatedButton(
+                    ft.Button(
                         "Browse Files",
                         on_click=select_files,
                     ),
@@ -167,13 +167,13 @@ def main(page: ft.Page):
             ft.Row(
                 [
                     output_dir_input,
-                    ft.ElevatedButton(
+                    ft.Button(
                         "Browse Folder",
                         on_click=select_output_directory,
                     ),
                 ]
             ),
-            ft.ElevatedButton(
+            ft.Button(
                 "Run",
                 on_click=run_transcribe,
                 bgcolor="#0078ff",
@@ -187,135 +187,135 @@ def main(page: ft.Page):
     )
 
     # --- View Tab ---
-    async def select_viewed_directory(_):
-        directory = await ft.FilePicker().get_directory_path()
-        if directory:
-            view_folder_input.value = directory
-            refresh_view_tab()
-            page.update()
+    # async def select_viewed_directory(_):
+    #     directory = await ft.FilePicker().get_directory_path()
+    #     if directory:
+    #         view_folder_input.value = directory
+    #         refresh_view_tab()
+    #         page.update()
 
-    view_folder_input = ft.TextField(
-        label="Folder containing your transcriptions", width=600
-    )
+    # view_folder_input = ft.TextField(
+    #     label="Folder containing your transcriptions", width=600
+    # )
 
-    def on_view_folder_change(e):
-        refresh_view_tab()
+    # def on_view_folder_change(e):
+    #     refresh_view_tab()
 
-    view_folder_input.on_change = on_view_folder_change
+    # view_folder_input.on_change = on_view_folder_change
 
-    vtt_list = ft.ListView(expand=True, spacing=4, height=200)
+    # vtt_list = ft.ListView(expand=True, spacing=4, height=200)
 
-    def refresh_view_tab():
-        nonlocal file_pairs, selected_folder
-        folder = view_folder_input.value or last_destination
-        selected_folder = folder
-        vtt_list.controls.clear()
-        file_pairs.clear()
-        if folder and os.path.isdir(folder):
-            dir_files = os.listdir(folder)
-            vtt_files = [f for f in dir_files if f.endswith(".vtt")]
-            for vtt_name in vtt_files:
-                vtt_stem = Path(vtt_name).stem
-                audio_file = None
-                for f in dir_files:
-                    p = Path(f)
-                    if p.stem == vtt_stem and p.suffix != ".vtt":
-                        audio_file = f
-                        break
-                file_pairs[vtt_name] = audio_file
-                vtt_list.controls.append(
-                    ft.ListTile(
-                        title=ft.Text(vtt_name),
-                        subtitle=ft.Text(
-                            audio_file if audio_file else "No audio found"
-                        ),
-                        on_click=lambda e, vtt=vtt_name: show_transcription(vtt),
-                    )
-                )
-            if file_pairs:
-                view_message.value = f"Found {len(file_pairs)} transcription file(s). Select one to view."
-                view_message.color = "green"
-            else:
-                view_message.value = (
-                    "No transcription files found in the specified directory."
-                )
-                view_message.color = "red"
-        else:
-            view_message.value = (
-                "No transcriptions to view yet. Run a transcription first."
-            )
-            view_message.color = "grey"
-        segment_controls.controls.clear()
-        # audio_player.visible = False
-        page.update()
+    # def refresh_view_tab():
+    #     nonlocal file_pairs, selected_folder
+    #     folder = view_folder_input.value or last_destination
+    #     selected_folder = folder
+    #     vtt_list.controls.clear()
+    #     file_pairs.clear()
+    #     if folder and os.path.isdir(folder):
+    #         dir_files = os.listdir(folder)
+    #         vtt_files = [f for f in dir_files if f.endswith(".vtt")]
+    #         for vtt_name in vtt_files:
+    #             vtt_stem = Path(vtt_name).stem
+    #             audio_file = None
+    #             for f in dir_files:
+    #                 p = Path(f)
+    #                 if p.stem == vtt_stem and p.suffix != ".vtt":
+    #                     audio_file = f
+    #                     break
+    #             file_pairs[vtt_name] = audio_file
+    #             vtt_list.controls.append(
+    #                 ft.ListTile(
+    #                     title=ft.Text(vtt_name),
+    #                     subtitle=ft.Text(
+    #                         audio_file if audio_file else "No audio found"
+    #                     ),
+    #                     on_click=lambda e, vtt=vtt_name: show_transcription(vtt),
+    #                 )
+    #             )
+    #         if file_pairs:
+    #             view_message.value = f"Found {len(file_pairs)} transcription file(s). Select one to view."
+    #             view_message.color = "green"
+    #         else:
+    #             view_message.value = (
+    #                 "No transcription files found in the specified directory."
+    #             )
+    #             view_message.color = "red"
+    #     else:
+    #         view_message.value = (
+    #             "No transcriptions to view yet. Run a transcription first."
+    #         )
+    #         view_message.color = "grey"
+    #     segment_controls.controls.clear()
+    #     # audio_player.visible = False
+    #     page.update()
 
-    def show_transcription(vtt_name):
-        nonlocal segments, selected_audio, selected_vtt
-        folder = selected_folder
-        audio_file = file_pairs.get(vtt_name)
-        file_path = os.path.join(folder, vtt_name)
-        audio_path = os.path.join(folder, audio_file) if audio_file else None
-        selected_audio = audio_path
-        selected_vtt = file_path
-        segments = parse_vtt(file_path, audio_file)
-        segment_controls.controls.clear()
-        if audio_path and os.path.exists(audio_path):
-            audio_player.src = audio_path
-            # audio_player.visible = True
-        # else:
-        # audio_player.visible = False
-        for idx, (text, start, end) in enumerate(segments):
+    # def show_transcription(vtt_name):
+    #     nonlocal segments, selected_audio, selected_vtt
+    #     folder = selected_folder
+    #     audio_file = file_pairs.get(vtt_name)
+    #     file_path = os.path.join(folder, vtt_name)
+    #     audio_path = os.path.join(folder, audio_file) if audio_file else None
+    #     selected_audio = audio_path
+    #     selected_vtt = file_path
+    #     segments = parse_vtt(file_path, audio_file)
+    #     segment_controls.controls.clear()
+    #     if audio_path and os.path.exists(audio_path):
+    #         audio_player.src = audio_path
+    #         # audio_player.visible = True
+    #     # else:
+    #     # audio_player.visible = False
+    #     for idx, (text, start, end) in enumerate(segments):
 
-            def make_on_click(seek_time):
-                async def _on_click(e):
-                    # if audio_player.visible:
-                    await audio_player.seek(
-                        ft.Duration(seconds=timestamp_to_seconds(seek_time))
-                    )
-                    await audio_player.play()
+    #         def make_on_click(seek_time):
+    #             async def _on_click(e):
+    #                 # if audio_player.visible:
+    #                 await audio_player.seek(
+    #                     ft.Duration(seconds=timestamp_to_seconds(seek_time))
+    #                 )
+    #                 await audio_player.play()
 
-                return _on_click
+    #             return _on_click
 
-            segment_controls.controls.append(
-                ft.TextButton(
-                    f"[{start}] {text}",
-                    style=ft.ButtonStyle(
-                        # color={"": "#0078ff"},
-                        # bgcolor={"": "#e3f0ff"},
-                        padding=10,
-                        shape=ft.RoundedRectangleBorder(radius=6),
-                    ),
-                    on_click=make_on_click(start),
-                )
-            )
-        page.update()
+    #         segment_controls.controls.append(
+    #             ft.TextButton(
+    #                 f"[{start}] {text}",
+    #                 style=ft.ButtonStyle(
+    #                     # color={"": "#0078ff"},
+    #                     # bgcolor={"": "#e3f0ff"},
+    #                     padding=10,
+    #                     shape=ft.RoundedRectangleBorder(radius=6),
+    #                 ),
+    #                 on_click=make_on_click(start),
+    #             )
+    #         )
+    #     page.update()
 
     view_tab = ft.Column(
         [
-            ft.Text(
-                "View and Listen to Your Transcriptions",
-                size=22,
-                weight=ft.FontWeight.BOLD,
-            ),
+            # ft.Text(
+            #     "View and Listen to Your Transcriptions",
+            #     size=22,
+            #     weight=ft.FontWeight.BOLD,
+            # ),
             ft.Text(
                 "Enter the folder where your transcriptions are saved to review your results.\n"
                 "You can listen to the original audio and read the transcribed text.\n"
                 "Click on any transcript segment to jump to that part of the audio!",
                 size=14,
             ),
-            ft.Row(
-                [
-                    view_folder_input,
-                    ft.ElevatedButton(
-                        "Browse Folder",
-                        on_click=select_viewed_directory,
-                    ),
-                ]
-            ),
-            view_message,
-            vtt_list,
-            ft.Text("Transcript Segments:", size=16, weight=ft.FontWeight.BOLD),
-            segment_controls,
+            # ft.Row(
+            #     [
+            #         view_folder_input,
+            #         ft.Button(
+            #             "Browse Folder",
+            #             on_click=select_viewed_directory,
+            #         ),
+            #     ]
+            # ),
+            # view_message,
+            # vtt_list,
+            # ft.Text("Transcript Segments:", size=16, weight=ft.FontWeight.BOLD),
+            # segment_controls,
         ],
         scroll=ft.ScrollMode.AUTO,
         expand=True,
@@ -342,4 +342,4 @@ def main(page: ft.Page):
     page.add(tabs)
 
 
-ft.app(target=main)
+ft.run(main)
