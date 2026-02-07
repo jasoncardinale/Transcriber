@@ -38,7 +38,6 @@ def main(page: ft.Page):
     page.window.width = 800
     page.window.height = 700
 
-    # State
     audio_files: list[str] = []
     output_dir: str = ""
     file_pairs: dict[str, str | None] = {}
@@ -315,6 +314,7 @@ def main(page: ft.Page):
             view_message,
             vtt_list,
             ft.Text("Transcript", size=22, weight=ft.FontWeight.BOLD),
+            ft.Row([ft.TextButton("Pause"), ft.TextButton("Resume")]),
             segment_controls,
         ],
         scroll=ft.ScrollMode.AUTO,
