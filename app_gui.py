@@ -46,6 +46,7 @@ def main(page: ft.Page):
     segments: list[tuple[str, str, str]] = []
     selected_folder: str = ""
     selected_vtt: str = ""
+
     upload_message = ft.Text(
         "No files uploaded yet. Please select your audio files above.", color="grey"
     )
