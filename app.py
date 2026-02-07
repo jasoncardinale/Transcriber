@@ -1,9 +1,9 @@
 import os
-from parser import parse_vtt
 from pathlib import Path
 
 import streamlit as st
 
+from parser import parse_vtt
 from transcribe import transcribe
 
 st.title("Audio Transcription Tool")
@@ -57,9 +57,7 @@ with tabs[0]:
     )
     if audio_files:
         st.session_state.audio_files = audio_files
-        st.success(
-            f"Uploaded {len(audio_files)} file(s). You can now proceed to the next step."
-        )
+        st.success(f"Uploaded {len(audio_files)} file(s). You can now proceed to the next step.")
     else:
         st.info("No files uploaded yet. Please select your audio files above.")
 

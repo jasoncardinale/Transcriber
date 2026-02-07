@@ -23,3 +23,15 @@ dev = [
 
 [project.scripts]
 transcribe-cli = "transcribe:transcribe_cli"
+
+[tool.ruff]
+line-length = 160
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "auto"

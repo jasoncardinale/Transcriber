@@ -1,10 +1,10 @@
 import os
-from parser import parse_vtt
 from pathlib import Path
 
 import flet as ft
 import flet_audio as fta
 
+from parser import parse_vtt
 from transcribe import transcribe
 from utils import timestamp_to_seconds
 
@@ -44,9 +44,7 @@ def main(page: ft.Page):
     selected_folder: str = ""
     selected_vtt: str = ""
 
-    upload_message = ft.Text(
-        "No files uploaded yet. Please select your audio files above.", color="grey"
-    )
+    upload_message = ft.Text("No files uploaded yet. Please select your audio files above.", color="grey")
     run_message = ft.Text("")
     view_message = ft.Text("")
     segment_controls = ft.Column(scroll=ft.ScrollMode.ALWAYS, expand=True)
@@ -68,9 +66,7 @@ def main(page: ft.Page):
                 upload_message.value = f"Uploaded {len(audio_files)} file(s). You can now proceed to the next step."
                 upload_message.color = "green"
         else:
-            upload_message.value = (
-                "No files uploaded yet. Please select your audio files above."
-            )
+            upload_message.value = "No files uploaded yet. Please select your audio files above."
             upload_message.color = "grey"
         page.update()
 
@@ -140,9 +136,7 @@ def main(page: ft.Page):
                 size=22,
                 weight=ft.FontWeight.BOLD,
             ),
-            ft.Text(
-                "Select one or more files from your computer to transcribe.", size=14
-            ),
+            ft.Text("Select one or more files from your computer to transcribe.", size=14),
             ft.Row(
                 [
                     ft.Button(
@@ -153,9 +147,7 @@ def main(page: ft.Page):
             ),
             upload_message,
             ft.Divider(),
-            ft.Text(
-                "Step 2: Generate Transcriptions", size=22, weight=ft.FontWeight.BOLD
-            ),
+            ft.Text("Step 2: Generate Transcriptions", size=22, weight=ft.FontWeight.BOLD),
             ft.Text(
                 "Choose a folder where you want your transcription files to be saved.\nThen click Run to start the transcription process.",
                 size=14,
@@ -193,9 +185,7 @@ def main(page: ft.Page):
     def make_segment_click(seek_time):
         async def _on_click():
             if audio_player:
-                await audio_player.seek(
-                    ft.Duration(seconds=timestamp_to_seconds(seek_time))
-                )
+                await audio_player.seek(ft.Duration(seconds=timestamp_to_seconds(seek_time)))
                 await audio_player.play()
 
         return _on_click
@@ -254,25 +244,19 @@ def main(page: ft.Page):
                 vtt_list.controls.append(
                     ft.ListTile(
                         title=ft.Text(vtt_name),
-                        subtitle=ft.Text(
-                            audio_file if audio_file else "No audio found"
-                        ),
+                        subtitle=ft.Text(audio_file if audio_file else "No audio found"),
                         on_click=lambda e, vtt=vtt_name: show_transcription(vtt),
                     )
                 )
 
             if file_pairs:
-                view_message.value = f"Found {len(file_pairs)} transcription file(s). Select one to view."
+                view_message.value = f"Found {len(file_pairs)} transcription file{'' if len(file_pairs) == 0 else 's'}. Select one to view."
                 view_message.color = "green"
             else:
-                view_message.value = (
-                    "No transcription files found in the specified directory."
-                )
+                view_message.value = "No transcription files found in the specified directory."
                 view_message.color = "red"
         else:
-            view_message.value = (
-                "No transcriptions to view yet. Run a transcription first."
-            )
+            view_message.value = "No transcriptions to view yet. Run a transcription first."
             view_message.color = "grey"
 
         vtt_list.visible = bool(vtt_list.controls)
