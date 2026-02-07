@@ -41,9 +41,7 @@ def main(page: ft.Page):
     # State
     audio_files: list[str] = []
     output_dir: str = ""
-    last_destination: str = ""
     file_pairs: dict[str, str | None] = {}
-    segments: list[tuple[str, str, str]] = []
     selected_folder: str = ""
     selected_vtt: str = ""
 
@@ -58,8 +56,6 @@ def main(page: ft.Page):
 
     # --- Upload Tab ---
     async def select_files(_: ft.Event[ft.Button]):
-        nonlocal audio_files
-
         files = await ft.FilePicker().pick_files(
             allow_multiple=True,
             allowed_extensions=AUDIO_VIDEO_EXTS,
@@ -69,8 +65,9 @@ def main(page: ft.Page):
             for f in files:
                 if f.path:
                     audio_files.append(f.path)
-            upload_message.value = f"Uploaded {len(audio_files)} file(s). You can now proceed to the next step."
-            upload_message.color = "green"
+            if audio_files:
+                upload_message.value = f"Uploaded {len(audio_files)} file(s). You can now proceed to the next step."
+                upload_message.color = "green"
         else:
             upload_message.value = (
                 "No files uploaded yet. Please select your audio files above."
@@ -80,6 +77,7 @@ def main(page: ft.Page):
 
     async def select_output_directory(_: ft.Event[ft.Button]):
         nonlocal output_dir
+
         directory = await ft.FilePicker().get_directory_path()
         if directory:
             output_dir_input.value = directory
@@ -92,8 +90,6 @@ def main(page: ft.Page):
     )
 
     def run_transcribe():
-        nonlocal last_destination
-
         output_dir_value = output_dir_input.value
 
         if not audio_files or not output_dir_value:
@@ -196,8 +192,6 @@ def main(page: ft.Page):
     )
 
     def make_segment_click(seek_time):
-        nonlocal audio_player
-
         async def _on_click():
             if audio_player:
                 await audio_player.seek(
@@ -208,7 +202,7 @@ def main(page: ft.Page):
         return _on_click
 
     def show_transcription(vtt_name: str):
-        nonlocal segments, selected_vtt, audio_player
+        nonlocal selected_vtt, audio_player
 
         folder = selected_folder
         audio_file = file_pairs.get(vtt_name)
@@ -236,9 +230,9 @@ def main(page: ft.Page):
         page.update()
 
     def refresh_view_tab():
-        nonlocal file_pairs, selected_folder
+        nonlocal selected_folder
 
-        folder = view_dir_input.value or last_destination
+        folder = view_dir_input.value
         selected_folder = folder
         vtt_list.controls.clear()
         file_pairs.clear()
