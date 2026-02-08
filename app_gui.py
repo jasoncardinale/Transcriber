@@ -1,5 +1,6 @@
 import os
 from pathlib import Path
+from typing import Literal
 
 import flet as ft
 import flet_audio as fta
@@ -48,6 +49,7 @@ def main(page: ft.Page):
     run_message = ft.Text("")
     view_message = ft.Text("")
     segment_controls = ft.Column(scroll=ft.ScrollMode.ALWAYS, expand=True)
+    playback_controls = ft.Row()
 
     audio_player = None
 
@@ -175,7 +177,7 @@ def main(page: ft.Page):
     )
 
     # --- View Tab ---
-    vtt_list = ft.ListView(expand=True, spacing=4, height=200, visible=False)
+    vtt_list = ft.ListView(expand=True, spacing=4, visible=False)
 
     view_dir_input = ft.TextField(
         label="Folder containing your transcriptions",
@@ -190,6 +192,34 @@ def main(page: ft.Page):
 
         return _on_click
 
+    def control_playback(command: Literal["start", "pause", "resume"]):
+        async def _on_click():
+            if audio_player:
+                match command:
+                    case "start":
+                        await audio_player.seek(ft.Duration(seconds=0))
+                        await audio_player.play()
+                    case "pause":
+                        await audio_player.pause()
+                    case "resume":
+                        await audio_player.resume()
+
+        return _on_click
+
+    async def paude_playback():
+        if audio_player:
+            await audio_player.seek(ft.Duration(seconds=0))
+            await audio_player.play()
+
+    def update_playback_controls(event: fta.AudioStateChangeEvent):
+        playback_controls.controls.clear()
+        playback_controls.controls.append(ft.Button("Start", icon=ft.Icons.START, on_click=control_playback("start")))
+
+        if event.state == fta.AudioState.PAUSED:
+            playback_controls.controls.append(ft.Button("Resume", icon=ft.Icons.PLAY_CIRCLE, on_click=control_playback("resume")))
+        elif event.state == fta.AudioState.PLAYING:
+            playback_controls.controls.append(ft.Button("Pause", icon=ft.Icons.PAUSE_CIRCLE, on_click=control_playback("pause")))
+
     def show_transcription(vtt_name: str):
         nonlocal selected_vtt, audio_player
 
@@ -200,9 +230,13 @@ def main(page: ft.Page):
         selected_vtt = file_path
         segments = parse_vtt(file_path)
         segment_controls.controls.clear()
+        playback_controls.controls.clear()
 
         if audio_path and os.path.exists(audio_path):
-            audio_player = fta.Audio(src=audio_path, autoplay=False)
+            audio_player = fta.Audio(src=audio_path, autoplay=False, on_state_change=update_playback_controls)
+
+        playback_controls.controls.clear()
+        playback_controls.controls.append(ft.Button("Start", icon=ft.Icons.START, on_click=control_playback("start")))
 
         for text, start, _ in segments:
             segment_controls.controls.append(
@@ -250,7 +284,7 @@ def main(page: ft.Page):
                 )
 
             if file_pairs:
-                view_message.value = f"Found {len(file_pairs)} transcription file{'' if len(file_pairs) == 0 else 's'}. Select one to view."
+                view_message.value = f"Found {len(file_pairs)} transcription file{'' if len(file_pairs) == 1 else 's'}. Select one to view."
                 view_message.color = "green"
             else:
                 view_message.value = "No transcription files found in the specified directory."
@@ -261,6 +295,7 @@ def main(page: ft.Page):
 
         vtt_list.visible = bool(vtt_list.controls)
 
+        playback_controls.controls.clear()
         segment_controls.controls.clear()
         page.update()
 
@@ -298,7 +333,7 @@ def main(page: ft.Page):
             view_message,
             vtt_list,
             ft.Text("Transcript", size=22, weight=ft.FontWeight.BOLD),
-            ft.Row([ft.TextButton("Pause"), ft.TextButton("Resume")]),
+            playback_controls,
             segment_controls,
         ],
         scroll=ft.ScrollMode.AUTO,
