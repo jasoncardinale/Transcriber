@@ -177,7 +177,7 @@ def main(page: ft.Page):
     )
 
     # --- View Tab ---
-    vtt_list = ft.ListView(expand=True, spacing=4, visible=False)
+    vtt_list = ft.ListView(expand_loose=True, height=200, spacing=4, visible=False)
 
     view_dir_input = ft.TextField(
         label="Folder containing your transcriptions",
@@ -220,8 +220,13 @@ def main(page: ft.Page):
         elif event.state == fta.AudioState.PLAYING:
             playback_controls.controls.append(ft.Button("Pause", icon=ft.Icons.PAUSE_CIRCLE, on_click=control_playback("pause")))
 
+    transcript_text = ft.Text("Select a transcript", size=22, weight=ft.FontWeight.BOLD, color="grey")
+
     def show_transcription(vtt_name: str):
         nonlocal selected_vtt, audio_player
+
+        transcript_text.value = vtt_name
+        transcript_text.color = "blue"
 
         folder = selected_folder
         audio_file = file_pairs.get(vtt_name)
@@ -280,6 +285,7 @@ def main(page: ft.Page):
                         title=ft.Text(vtt_name),
                         subtitle=ft.Text(audio_file if audio_file else "No audio found"),
                         on_click=lambda e, vtt=vtt_name: show_transcription(vtt),
+                        selected_tile_color="blue",
                     )
                 )
 
@@ -332,7 +338,8 @@ def main(page: ft.Page):
             ),
             view_message,
             vtt_list,
-            ft.Text("Transcript", size=22, weight=ft.FontWeight.BOLD),
+            ft.Divider(),
+            transcript_text,
             playback_controls,
             segment_controls,
         ],
