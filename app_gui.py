@@ -238,7 +238,7 @@ def main(page: ft.Page):
         playback_controls.controls.clear()
 
         if audio_path and os.path.exists(audio_path):
-            audio_player = fta.Audio(src=audio_path, autoplay=False, on_state_change=update_playback_controls)
+            audio_player = fta.Audio(src=audio_path, autoplay=False, release_mode=fta.ReleaseMode.STOP, on_state_change=update_playback_controls)
 
         playback_controls.controls.clear()
         playback_controls.controls.append(ft.Button("Start", icon=ft.Icons.START, on_click=control_playback("start")))
