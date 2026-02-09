@@ -219,11 +219,11 @@ def main(page: ft.Page):
         updated = False
 
         for i, t in enumerate(timestamps):
-            segment_controls.controls[i].opacity = 1.0
+            segment_controls.controls[i].opacity = 0.7
             if t >= seconds:
                 pos = i - 1 if i > 0 else 0
                 if not updated:
-                    segment_controls.controls[pos].opacity = 0.1
+                    segment_controls.controls[pos].opacity = 1.0
                     await segment_controls.scroll_to(scroll_key=timestamps[pos], duration=200)
                     updated = True
 
