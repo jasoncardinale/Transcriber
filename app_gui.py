@@ -184,11 +184,10 @@ def main(page: ft.Page):
         width=600,
     )
 
-    def make_segment_click(seek_time):
+    def make_segment_click(seek_time: str):
         async def _on_click():
             if audio_player:
-                await audio_player.seek(ft.Duration(seconds=timestamp_to_seconds(seek_time)))
-                await audio_player.play()
+                await audio_player.play(ft.Duration(seconds=timestamp_to_seconds(seek_time)))
 
         return _on_click
 
@@ -197,19 +196,13 @@ def main(page: ft.Page):
             if audio_player:
                 match command:
                     case "start":
-                        await audio_player.seek(ft.Duration(seconds=0))
-                        await audio_player.play()
+                        await audio_player.play(ft.Duration(seconds=0))
                     case "pause":
                         await audio_player.pause()
                     case "resume":
                         await audio_player.resume()
 
         return _on_click
-
-    async def paude_playback():
-        if audio_player:
-            await audio_player.seek(ft.Duration(seconds=0))
-            await audio_player.play()
 
     def update_playback_controls(event: fta.AudioStateChangeEvent):
         playback_controls.controls.clear()
@@ -285,7 +278,6 @@ def main(page: ft.Page):
                         title=ft.Text(vtt_name),
                         subtitle=ft.Text(audio_file if audio_file else "No audio found"),
                         on_click=lambda e, vtt=vtt_name: show_transcription(vtt),
-                        selected_tile_color="blue",
                     )
                 )
 
