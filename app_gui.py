@@ -37,7 +37,7 @@ AUDIO_VIDEO_EXTS = [
 def main(page: ft.Page):
     page.title = "Audio Transcription Tool"
     page.window.width = 800
-    page.window.height = 700
+    page.window.height = 800
 
     audio_files: list[str] = []
     output_dir: str = ""
@@ -185,10 +185,10 @@ def main(page: ft.Page):
         width=600,
     )
 
-    def make_segment_click(seek_time: str):
+    def make_segment_click(seek_time: int):
         async def _on_click():
             if audio_player:
-                await audio_player.play(ft.Duration(seconds=timestamp_to_seconds(seek_time)))
+                await audio_player.play(ft.Duration(seconds=seek_time))
 
         return _on_click
 
@@ -216,10 +216,16 @@ def main(page: ft.Page):
 
     async def handle_audio_position_change(event: fta.AudioPositionChangeEvent):
         seconds = event.position // 1000
-        for t in timestamps:
-            if t > seconds:
-                await segment_controls.scroll_to(t)
-                break
+        updated = False
+
+        for i, t in enumerate(timestamps):
+            segment_controls.controls[i].opacity = 1.0
+            if t >= seconds:
+                pos = i - 1 if i > 0 else 0
+                if not updated:
+                    segment_controls.controls[pos].opacity = 0.1
+                    await segment_controls.scroll_to(scroll_key=timestamps[pos], duration=200)
+                    updated = True
 
     transcript_text = ft.Text("Select a transcript", size=22, weight=ft.FontWeight.BOLD, color="grey")
 
@@ -255,8 +261,8 @@ def main(page: ft.Page):
         playback_controls.controls.append(ft.Button("Start", icon=ft.Icons.START, on_click=control_playback("start")))
 
         for text, start, _ in segments:
-            seconds = timestamp_to_seconds(start)
-            timestamps.append(seconds)
+            start_seconds = timestamp_to_seconds(start)
+            timestamps.append(start_seconds)
             segment_controls.controls.append(
                 ft.TextButton(
                     f"[{start}] {text}",
@@ -264,8 +270,8 @@ def main(page: ft.Page):
                         padding=10,
                         shape=ft.RoundedRectangleBorder(radius=6),
                     ),
-                    on_click=make_segment_click(start),
-                    key=seconds,
+                    on_click=make_segment_click(start_seconds),
+                    key=ft.ScrollKey(start_seconds),
                 )
             )
 
@@ -361,6 +367,7 @@ def main(page: ft.Page):
             ),
             playback_controls,
             segment_controls,
+            ft.Divider(),
         ],
         scroll=ft.ScrollMode.AUTO,
         expand=True,
