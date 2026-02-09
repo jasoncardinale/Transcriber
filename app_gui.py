@@ -218,8 +218,11 @@ def main(page: ft.Page):
     def show_transcription(vtt_name: str):
         nonlocal selected_vtt, audio_player
 
+        vtt_list.visible = False
+        select_transcript_button.visible = True
+
         transcript_text.value = vtt_name
-        transcript_text.color = "blue"
+        transcript_text.color = "black"
 
         folder = selected_folder
         audio_file = file_pairs.get(vtt_name)
@@ -277,7 +280,7 @@ def main(page: ft.Page):
                     ft.ListTile(
                         title=ft.Text(vtt_name),
                         subtitle=ft.Text(audio_file if audio_file else "No audio found"),
-                        on_click=lambda e, vtt=vtt_name: show_transcription(vtt),
+                        on_click=lambda _, vtt=vtt_name: show_transcription(vtt),
                     )
                 )
 
@@ -292,6 +295,7 @@ def main(page: ft.Page):
             view_message.color = "grey"
 
         vtt_list.visible = bool(vtt_list.controls)
+        select_transcript_button.visible = True
 
         playback_controls.controls.clear()
         segment_controls.controls.clear()
@@ -306,18 +310,19 @@ def main(page: ft.Page):
             refresh_view_tab()
             page.update()
 
+    def open_list():
+        vtt_list.visible = True
+        select_transcript_button.visible = False
+        page.update()
+
+    select_transcript_button = ft.Button("Select transcript", visible=not vtt_list.visible, on_click=open_list)
+
     view_tab = ft.Column(
         [
             ft.Text(
                 "View and Listen to Your Transcriptions",
                 size=22,
                 weight=ft.FontWeight.BOLD,
-            ),
-            ft.Text(
-                "Enter the folder where your transcriptions are saved to review your results.\n"
-                "You can listen to the original audio and read the transcribed text.\n"
-                "Click on any transcript segment to jump to that part of the audio!",
-                size=14,
             ),
             ft.Row(
                 [
@@ -331,7 +336,10 @@ def main(page: ft.Page):
             view_message,
             vtt_list,
             ft.Divider(),
-            transcript_text,
+            ft.Row(
+                [transcript_text, select_transcript_button],
+                alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+            ),
             playback_controls,
             segment_controls,
         ],
