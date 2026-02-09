@@ -48,7 +48,8 @@ def main(page: ft.Page):
     upload_message = ft.Text("No files uploaded yet. Please select your audio files above.", color="grey")
     run_message = ft.Text("")
     view_message = ft.Text("")
-    segment_controls = ft.Column(scroll=ft.ScrollMode.ALWAYS, expand=True)
+    segment_controls = ft.Column(scroll=ft.ScrollMode.ALWAYS, height=400)
+    timestamps: list[int] = []
     playback_controls = ft.Row()
 
     audio_player = None
@@ -204,7 +205,7 @@ def main(page: ft.Page):
 
         return _on_click
 
-    def update_playback_controls(event: fta.AudioStateChangeEvent):
+    def handle_audio_state_change(event: fta.AudioStateChangeEvent):
         playback_controls.controls.clear()
         playback_controls.controls.append(ft.Button("Start", icon=ft.Icons.START, on_click=control_playback("start")))
 
@@ -212,6 +213,13 @@ def main(page: ft.Page):
             playback_controls.controls.append(ft.Button("Resume", icon=ft.Icons.PLAY_CIRCLE, on_click=control_playback("resume")))
         elif event.state == fta.AudioState.PLAYING:
             playback_controls.controls.append(ft.Button("Pause", icon=ft.Icons.PAUSE_CIRCLE, on_click=control_playback("pause")))
+
+    async def handle_audio_position_change(event: fta.AudioPositionChangeEvent):
+        seconds = event.position // 1000
+        for t in timestamps:
+            if t > seconds:
+                await segment_controls.scroll_to(t)
+                break
 
     transcript_text = ft.Text("Select a transcript", size=22, weight=ft.FontWeight.BOLD, color="grey")
 
@@ -231,15 +239,24 @@ def main(page: ft.Page):
         selected_vtt = file_path
         segments = parse_vtt(file_path)
         segment_controls.controls.clear()
+        timestamps.clear()
         playback_controls.controls.clear()
 
         if audio_path and os.path.exists(audio_path):
-            audio_player = fta.Audio(src=audio_path, autoplay=False, release_mode=fta.ReleaseMode.STOP, on_state_change=update_playback_controls)
+            audio_player = fta.Audio(
+                src=audio_path,
+                autoplay=False,
+                release_mode=fta.ReleaseMode.STOP,
+                on_state_change=handle_audio_state_change,
+                on_position_change=handle_audio_position_change,
+            )
 
         playback_controls.controls.clear()
         playback_controls.controls.append(ft.Button("Start", icon=ft.Icons.START, on_click=control_playback("start")))
 
         for text, start, _ in segments:
+            seconds = timestamp_to_seconds(start)
+            timestamps.append(seconds)
             segment_controls.controls.append(
                 ft.TextButton(
                     f"[{start}] {text}",
@@ -248,6 +265,7 @@ def main(page: ft.Page):
                         shape=ft.RoundedRectangleBorder(radius=6),
                     ),
                     on_click=make_segment_click(start),
+                    key=seconds,
                 )
             )
 
@@ -299,6 +317,7 @@ def main(page: ft.Page):
 
         playback_controls.controls.clear()
         segment_controls.controls.clear()
+        timestamps.clear()
         page.update()
 
     view_dir_input.on_change = refresh_view_tab
