@@ -26,11 +26,11 @@ You can upload audio files, generate transcriptions, and review/listen to your r
    - On Mac: Double-click the `app` file.
 
 3. **Follow the App Instructions:**  
-   The app will open in your browser. Follow the on-screen steps to upload audio, generate transcriptions, and view results.
+   The app will open in a new window. Follow the on-screen steps to upload audio, generate transcriptions, and view results.
 
 **Troubleshooting:**
 - If you see a security warning, you may need to allow the app to run in your system settings.
-- If the app does not open automatically, open your browser and go to `http://localhost:8501`.
+
 
 ### Option 2: Run from Source
 
@@ -52,7 +52,7 @@ uv sync
 ### 2. Run the App
 
 ```bash
-uv run streamlit run app.py
+uv run python app.py
 ```
 
 The app will open in your browser.
@@ -91,7 +91,7 @@ The app will open in your browser.
 
 ## Credits
 
-- Built with [Streamlit](https://streamlit.io/) and [OpenAI Whisper](https://github.com/openai/whisper).
+- Built with [Flet](https://github.com/flet-dev/flet) and [OpenAI Whisper](https://github.com/openai/whisper).
 
 ---
 
