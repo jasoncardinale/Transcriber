@@ -59,7 +59,7 @@ def main(page: ft.Page):
 
     view_message = ft.Text("")
     segment_controls = ft.Column(scroll=ft.ScrollMode.ALWAYS, height=400)
-    timestamps: list[int] = []
+    end_timestamps: list[int] = []
     playback_controls = ft.Row()
 
     audio_player = None
@@ -228,13 +228,12 @@ def main(page: ft.Page):
         seconds = event.position // 1000
         updated = False
 
-        for i, t in enumerate(timestamps):
+        for i, t in enumerate(end_timestamps):
             segment_controls.controls[i].opacity = 0.7
             if t >= seconds:
-                pos = i - 1 if i > 0 else 0
                 if not updated:
-                    segment_controls.controls[pos].opacity = 1.0
-                    await segment_controls.scroll_to(scroll_key=timestamps[pos], duration=200)
+                    segment_controls.controls[i].opacity = 1.0
+                    await segment_controls.scroll_to(scroll_key=end_timestamps[i], duration=200)
                     updated = True
 
     transcript_text = ft.Text("Select a transcript", size=22, weight=ft.FontWeight.BOLD, color="grey")
@@ -253,9 +252,10 @@ def main(page: ft.Page):
         file_path = os.path.join(folder, vtt_name)
         audio_path = os.path.join(folder, audio_file) if audio_file else None
         selected_vtt = file_path
+
         segments = parse_vtt(file_path)
         segment_controls.controls.clear()
-        timestamps.clear()
+        end_timestamps.clear()
         playback_controls.controls.clear()
 
         if audio_path and os.path.exists(audio_path):
@@ -270,9 +270,10 @@ def main(page: ft.Page):
         playback_controls.controls.clear()
         playback_controls.controls.append(ft.Button("Start", icon=ft.Icons.START, on_click=control_playback("start")))
 
-        for text, start, _ in segments:
+        for text, start, end in segments:
             start_seconds = timestamp_to_seconds(start)
-            timestamps.append(start_seconds)
+            end_seconds = timestamp_to_seconds(end)
+            end_timestamps.append(end_seconds)
             segment_controls.controls.append(
                 ft.TextButton(
                     f"[{start}] {text}",
@@ -325,7 +326,7 @@ def main(page: ft.Page):
                 view_message.value = "No transcription files found in the specified directory."
                 view_message.color = "red"
         else:
-            view_message.value = "No transcriptions to view yet. Run a transcription first."
+            view_message.value = "No transcriptions to view yet. Generate a transcription first."
             view_message.color = "grey"
 
         vtt_list.visible = bool(vtt_list.controls)
@@ -333,7 +334,7 @@ def main(page: ft.Page):
 
         playback_controls.controls.clear()
         segment_controls.controls.clear()
-        timestamps.clear()
+        end_timestamps.clear()
         page.update()
 
     view_dir_input.on_change = refresh_view_tab
