@@ -21,7 +21,7 @@ dev = [
 ]
 
 [project.scripts]
-transcribe-cli = "transcribe:transcribe_cli"
+transcribe-cli = "transcribe.transcribe:transcribe_cli"
 
 [tool.ruff]
 line-length = 160
