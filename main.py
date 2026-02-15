@@ -282,18 +282,19 @@ def main(page: ft.Page):
             end_seconds = timestamp_to_seconds(end)
             end_timestamps.append(end_seconds)
             segment_controls.controls.append(
-                ft.Container(ft.TextButton(
-                    f"[{start}] {text}",
-                    style=ft.ButtonStyle(
-                        padding=10,
-                        shape=ft.RoundedRectangleBorder(radius=6),
+                ft.Container(
+                    ft.TextButton(
+                        f"[{start}] {text}",
+                        style=ft.ButtonStyle(
+                            padding=10,
+                            shape=ft.RoundedRectangleBorder(radius=6),
+                        ),
+                        on_click=make_segment_click(start_seconds),
+                        key=ft.ScrollKey(start_seconds),
+                        expand=True,
                     ),
-                    on_click=make_segment_click(start_seconds),
-                    key=ft.ScrollKey(start_seconds),
-                    expand=True
-                ),
-                expand=True,
-                alignment=ft.Alignment.CENTER_LEFT
+                    expand=True,
+                    alignment=ft.Alignment.CENTER_LEFT,
                 )
             )
 
