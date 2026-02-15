@@ -24,7 +24,7 @@ dev = [
 transcribe-cli = "transcribe.transcribe:transcribe_cli"
 
 [tool.flet]
-project = "src"
+product = "Transcriber"
 
 [tool.ruff]
 line-length = 160

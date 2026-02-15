@@ -6,7 +6,9 @@ from typing import Literal
 import flet as ft
 import flet_audio as fta
 
-from transcribe import parse_vtt, timestamp_to_seconds, transcribe
+from parser import parse_vtt
+from transcribe import transcribe
+from utils import timestamp_to_seconds
 
 AUDIO_VIDEO_EXTS = [
     "wav",
