@@ -1,3 +1,4 @@
+import asyncio
 import os
 from pathlib import Path
 from typing import Literal
@@ -46,7 +47,16 @@ def main(page: ft.Page):
     selected_vtt: str = ""
 
     upload_message = ft.Text("No files uploaded yet. Please select your audio files above.", color="grey")
+
     run_message = ft.Text("")
+    run_progress = ft.ProgressRing(visible=False)
+    run_button = ft.Button(
+        "Run",
+        bgcolor="blue",
+        color="white",
+        width=200,
+    )
+
     view_message = ft.Text("")
     segment_controls = ft.Column(scroll=ft.ScrollMode.ALWAYS, height=400)
     timestamps: list[int] = []
@@ -87,7 +97,11 @@ def main(page: ft.Page):
         width=600,
     )
 
-    def run_transcribe():
+    async def run_transcribe():
+        run_progress.visible = True
+        run_button.disabled = True
+        page.update()
+
         output_dir_value = output_dir_input.value
 
         if not audio_files or not output_dir_value:
@@ -110,7 +124,7 @@ def main(page: ft.Page):
                 audio_path = os.path.join(transcription_path, filename)
                 with open(file_path, "rb") as src, open(audio_path, "wb") as dst:
                     dst.write(src.read())
-                transcribe(audio_path, transcription_path)
+                await asyncio.to_thread(transcribe, audio_path, transcription_path)
             except Exception as e:
                 errors.append(f"Unable to transcribe {filename}: {e}")
 
@@ -119,21 +133,18 @@ def main(page: ft.Page):
             run_message.value = "\n".join(errors)
             run_message.color = "red"
         else:
-            run_message.value = "Transcription complete!"
+            run_message.value = "Transcription complete! Click 'View Transcriptions'"
             run_message.color = "green"
         view_dir_input.value = last_destination
+
+        run_progress.visible = False
+        run_button.disabled = False
         page.update()
+
+    run_button.on_click = run_transcribe
 
     upload_tab = ft.Column(
         [
-            ft.Text("Audio Transcription Tool", size=28, weight=ft.FontWeight.BOLD),
-            ft.Text(
-                "Welcome! This app lets you easily transcribe your audio recordings into text.\n"
-                "Just upload your audio files, choose where to save the results, and generate your transcriptions.\n"
-                "You can also review and listen to your transcriptions right here.",
-                size=16,
-            ),
-            ft.Divider(),
             ft.Text(
                 "Step 1: Upload Your Audio/Video Files",
                 size=22,
@@ -164,12 +175,11 @@ def main(page: ft.Page):
                     ),
                 ]
             ),
-            ft.Button(
-                "Run",
-                on_click=run_transcribe,
-                bgcolor="blue",
-                color="white",
-                width=200,
+            ft.Row(
+                [
+                    run_button,
+                    run_progress,
+                ]
             ),
             run_message,
         ],

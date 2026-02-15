@@ -14,7 +14,7 @@ def parse_vtt(transcription_path: str):
         if match:
             start, end = match.groups()
             i += 1
-            text_lines = []
+            text_lines: list[str] = []
             while i < len(lines) and lines[i].strip() and not timestamp_re.match(lines[i].strip()):
                 text_lines.append(lines[i].strip())
                 i += 1

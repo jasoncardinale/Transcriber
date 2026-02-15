@@ -25,13 +25,6 @@ def transcribe_cli():
     audio_path = args[0]
     output_path = args[1]
 
-    # subprocess.run(
-    #     ["uv", "run", "transcribe.py", audio_path],
-    #     check=True,
-    #     capture_output=True,
-    #     text=True,
-    # )
-
     transcribe(audio_path, output_path)
 
 
