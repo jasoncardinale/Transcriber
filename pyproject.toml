@@ -23,6 +23,9 @@ dev = [
 [project.scripts]
 transcribe-cli = "transcribe.transcribe:transcribe_cli"
 
+[tool.flet]
+project = "src"
+
 [tool.ruff]
 line-length = 160
 target-version = "py312"
