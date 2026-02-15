@@ -52,7 +52,7 @@ uv sync
 ### 2. Run the App
 
 ```bash
-uv run python app.py
+uv run python main.py
 ```
 
 The app will open in your browser.
