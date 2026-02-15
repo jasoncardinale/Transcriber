@@ -1,14 +1,18 @@
-import asyncio
-import os
-from pathlib import Path
-from typing import Literal
+import static_ffmpeg
 
-import flet as ft
-import flet_audio as fta
+static_ffmpeg.add_paths()
 
-from parser import parse_vtt
-from transcribe import transcribe
-from utils import timestamp_to_seconds
+import asyncio  # noqa: E402
+import os  # noqa: E402
+from pathlib import Path  # noqa: E402
+from typing import Literal  # noqa: E402
+
+import flet as ft  # noqa: E402
+import flet_audio as fta  # noqa: E402
+
+from parser import parse_vtt  # noqa: E402
+from transcribe import transcribe  # noqa: E402
+from utils import timestamp_to_seconds  # noqa: E402
 
 AUDIO_VIDEO_EXTS = [
     "wav",

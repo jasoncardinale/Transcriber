@@ -8,6 +8,7 @@ dependencies = [
     "flet>=0.80.5",
     "flet-audio>=0.80.5",
     "openai-whisper>=20250625",
+    "static-ffmpeg>=3.0",
 ]
 
 [build-system]
