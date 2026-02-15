@@ -62,7 +62,7 @@ def main(page: ft.Page):
     )
 
     view_message = ft.Text("")
-    segment_controls = ft.Column(scroll=ft.ScrollMode.ALWAYS, height=400)
+    segment_controls = ft.Column(scroll=ft.ScrollMode.ALWAYS, height=400, expand=True)
     end_timestamps: list[int] = []
     playback_controls = ft.Row()
 
@@ -282,7 +282,7 @@ def main(page: ft.Page):
             end_seconds = timestamp_to_seconds(end)
             end_timestamps.append(end_seconds)
             segment_controls.controls.append(
-                ft.TextButton(
+                ft.Container(ft.TextButton(
                     f"[{start}] {text}",
                     style=ft.ButtonStyle(
                         padding=10,
@@ -290,6 +290,10 @@ def main(page: ft.Page):
                     ),
                     on_click=make_segment_click(start_seconds),
                     key=ft.ScrollKey(start_seconds),
+                    expand=True
+                ),
+                expand=True,
+                alignment=ft.Alignment.CENTER_LEFT
                 )
             )
 
