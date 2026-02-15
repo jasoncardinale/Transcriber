@@ -135,10 +135,13 @@ def main(page: ft.Page):
         else:
             run_message.value = "Transcription complete! Click 'View Transcriptions'"
             run_message.color = "green"
+
         view_dir_input.value = last_destination
+        refresh_view_tab()
 
         run_progress.visible = False
         run_button.disabled = False
+
         page.update()
 
     run_button.on_click = run_transcribe
