@@ -323,7 +323,7 @@ def main(page: ft.Page):
                                 shape=ft.RoundedRectangleBorder(radius=6),
                             ),
                             on_click=make_segment_click(start_seconds),
-                            key=ft.ScrollKey(start_seconds),
+                            key=ft.ScrollKey(end_seconds),
                         ),
                         ft.IconButton(ft.Icons.EDIT, on_click=open_edit_dialog(segment)),
                     ],
