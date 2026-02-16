@@ -1,5 +1,4 @@
 import static_ffmpeg
-from flet.controls.material import alert_dialog
 
 static_ffmpeg.add_paths()
 
@@ -238,7 +237,7 @@ def main(page: ft.Page):
             if edit_field.value:
                 edit_vtt(selected_vtt, line_start, line_end, edit_field.value)
             edit_dialog.open = False
-            refresh_view_tab()
+            show_transcription(os.path.basename(selected_vtt))
 
         return _on_click
 
