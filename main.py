@@ -62,7 +62,7 @@ def main(page: ft.Page):
     )
 
     view_message = ft.Text("")
-    segment_controls = ft.Column(scroll=ft.ScrollMode.ALWAYS, height=400, expand=True)
+    segment_controls = ft.ListView(scroll=ft.ScrollMode.ALWAYS, expand=True, spacing=2)
     end_timestamps: list[int] = []
     playback_controls = ft.Row()
 
@@ -182,7 +182,8 @@ def main(page: ft.Page):
                         "Browse",
                         on_click=select_output_directory,
                     ),
-                ]
+                ],
+                alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
             ),
             ft.Row(
                 [
@@ -314,21 +315,14 @@ def main(page: ft.Page):
             end_seconds = timestamp_to_seconds(segment.end)
             end_timestamps.append(end_seconds)
             segment_controls.controls.append(
-                ft.Row(
-                    [
-                        ft.TextButton(
-                            f"[{segment.start}] {segment.text}",
-                            style=ft.ButtonStyle(
-                                padding=10,
-                                shape=ft.RoundedRectangleBorder(radius=6),
-                            ),
-                            on_click=make_segment_click(start_seconds),
-                            key=ft.ScrollKey(end_seconds),
-                        ),
-                        ft.IconButton(ft.Icons.EDIT, on_click=open_edit_dialog(segment)),
-                    ],
-                    alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
-                    expand=True,
+                ft.ListTile(
+                    title=ft.Text(
+                        f"[{segment.start}] {segment.text}",
+                        no_wrap=False,
+                    ),
+                    on_click=make_segment_click(start_seconds),
+                    trailing=ft.IconButton(ft.Icons.EDIT, on_click=open_edit_dialog(segment)),
+                    key=ft.ScrollKey(end_seconds),
                 )
             )
 
@@ -413,7 +407,8 @@ def main(page: ft.Page):
                         "Browse",
                         on_click=select_viewed_directory,
                     ),
-                ]
+                ],
+                alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
             ),
             view_message,
             vtt_list,
@@ -423,11 +418,9 @@ def main(page: ft.Page):
                 alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
             ),
             playback_controls,
-            segment_controls,
-            ft.Divider(),
+            ft.Container(content=segment_controls, expand=True),
             edit_dialog,
         ],
-        scroll=ft.ScrollMode.AUTO,
         expand=True,
     )
 
