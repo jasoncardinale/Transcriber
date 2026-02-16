@@ -1,4 +1,5 @@
 import static_ffmpeg
+from flet.controls.material import alert_dialog
 
 static_ffmpeg.add_paths()
 
@@ -10,7 +11,7 @@ from typing import Literal  # noqa: E402
 import flet as ft  # noqa: E402
 import flet_audio as fta  # noqa: E402
 
-from parser import parse_vtt  # noqa: E402
+from parser import ParseResult, edit_vtt, parse_vtt  # noqa: E402
 from transcribe import transcribe  # noqa: E402
 from utils import timestamp_to_seconds  # noqa: E402
 
@@ -66,6 +67,7 @@ def main(page: ft.Page):
     end_timestamps: list[int] = []
     playback_controls = ft.Row()
 
+    edit_dialog = ft.AlertDialog(title="Edit transcript segment", open=False)
     audio_player = None
 
     # --- Upload Tab ---
@@ -209,6 +211,37 @@ def main(page: ft.Page):
 
         return _on_click
 
+    def open_edit_dialog(existing: ParseResult):
+        async def _on_click():
+            if audio_player:
+                await audio_player.pause()
+
+            edit_dialog.content = ft.TextField(
+                label=existing.text,
+                width=600,
+            )
+            edit_dialog.actions = [
+                ft.Button("Dismiss", on_click=close_edit_dialog),
+                ft.Button("Save", on_click=edit_segment(existing, edit_dialog.content.value)),
+            ]
+            edit_dialog.open = True
+
+            page.update()
+
+        return _on_click
+
+    def close_edit_dialog():
+        edit_dialog.open = False
+        page.update()
+
+    def edit_segment(existing: ParseResult, text: str):
+        def _on_click():
+            edit_vtt(selected_vtt, existing, text)
+            edit_dialog.open = False
+            refresh_view_tab()
+
+        return _on_click
+
     def control_playback(command: Literal["start", "pause", "resume"]):
         async def _on_click():
             if audio_player:
@@ -277,24 +310,26 @@ def main(page: ft.Page):
         playback_controls.controls.clear()
         playback_controls.controls.append(ft.Button("Start", icon=ft.Icons.START, on_click=control_playback("start")))
 
-        for text, start, end in segments:
-            start_seconds = timestamp_to_seconds(start)
-            end_seconds = timestamp_to_seconds(end)
+        for segment in segments:
+            start_seconds = timestamp_to_seconds(segment.start)
+            end_seconds = timestamp_to_seconds(segment.end)
             end_timestamps.append(end_seconds)
             segment_controls.controls.append(
-                ft.Container(
-                    ft.TextButton(
-                        f"[{start}] {text}",
-                        style=ft.ButtonStyle(
-                            padding=10,
-                            shape=ft.RoundedRectangleBorder(radius=6),
+                ft.Row(
+                    [
+                        ft.TextButton(
+                            f"[{segment.start}] {segment.text}",
+                            style=ft.ButtonStyle(
+                                padding=10,
+                                shape=ft.RoundedRectangleBorder(radius=6),
+                            ),
+                            on_click=make_segment_click(start_seconds),
+                            key=ft.ScrollKey(start_seconds),
                         ),
-                        on_click=make_segment_click(start_seconds),
-                        key=ft.ScrollKey(start_seconds),
-                        expand=True,
-                    ),
+                        ft.IconButton(ft.Icons.EDIT, on_click=open_edit_dialog(segment)),
+                    ],
+                    alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
                     expand=True,
-                    alignment=ft.Alignment.CENTER_LEFT,
                 )
             )
 
@@ -391,6 +426,7 @@ def main(page: ft.Page):
             playback_controls,
             segment_controls,
             ft.Divider(),
+            edit_dialog,
         ],
         scroll=ft.ScrollMode.AUTO,
         expand=True,
