@@ -68,6 +68,7 @@ def main(page: ft.Page):
     playback_controls = ft.Row()
 
     edit_dialog = ft.AlertDialog(title="Edit transcript segment", open=False)
+    edit_field = ft.TextField(multiline=True, width=600)
     audio_player = None
 
     # --- Upload Tab ---
@@ -216,13 +217,11 @@ def main(page: ft.Page):
             if audio_player:
                 await audio_player.pause()
 
-            edit_dialog.content = ft.TextField(
-                label=existing.text,
-                width=600,
-            )
+            edit_field.value = existing.text
+            edit_dialog.content = edit_field
             edit_dialog.actions = [
                 ft.Button("Dismiss", on_click=close_edit_dialog),
-                ft.Button("Save", on_click=edit_segment(existing, edit_dialog.content.value)),
+                ft.Button("Save", on_click=save_edit(existing.line_start, existing.line_end)),
             ]
             edit_dialog.open = True
 
@@ -234,9 +233,10 @@ def main(page: ft.Page):
         edit_dialog.open = False
         page.update()
 
-    def edit_segment(existing: ParseResult, text: str):
+    def save_edit(line_start: int, line_end: int):
         def _on_click():
-            edit_vtt(selected_vtt, existing, text)
+            if edit_field.value:
+                edit_vtt(selected_vtt, line_start, line_end, edit_field.value)
             edit_dialog.open = False
             refresh_view_tab()
 

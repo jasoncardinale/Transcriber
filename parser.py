@@ -4,7 +4,8 @@ from dataclasses import dataclass
 
 @dataclass
 class ParseResult:
-    line: int
+    line_start: int
+    line_end: int
     text: str
     start: str
     end: str
@@ -23,22 +24,24 @@ def parse_vtt(transcription_path: str):
         if match:
             start, end = match.groups()
             i += 1
+            text_start_line = i
             text_lines: list[str] = []
             while i < len(lines) and lines[i].strip() and not timestamp_re.match(lines[i].strip()):
                 text_lines.append(lines[i].strip())
                 i += 1
             text = " ".join(text_lines)
             if text:
-                results.append(ParseResult(line=i, text=text, start=start, end=end))
+                results.append(ParseResult(line_start=text_start_line, line_end=i - 1, text=text, start=start, end=end))
         else:
             i += 1
 
     return results
 
 
-def edit_vtt(transcription_path: str, existing: ParseResult, text: str):
+def edit_vtt(transcription_path: str, line_start: int, line_end: int, text: str):
     with open(transcription_path, "r+", encoding="utf-8") as f:
         lines = f.readlines()
-        lines[existing.line] = f"{existing.start} --> {existing.end}\n{text}\n\n"
+        lines[line_start : line_end + 1] = [text + "\n"]
         f.seek(0)
+        f.truncate()
         f.writelines(lines)
