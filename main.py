@@ -66,7 +66,7 @@ def main(page: ft.Page):
     end_timestamps: list[int] = []
     playback_controls = ft.Row()
 
-    edit_dialog = ft.AlertDialog(title="Edit transcript segment", open=False)
+    edit_dialog = ft.AlertDialog(title="Edit", open=False)
     edit_field = ft.TextField(multiline=True, width=600)
     audio_player = None
 
