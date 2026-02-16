@@ -42,7 +42,7 @@ If you prefer, you can run the app directly from Python source code. See the Dev
 
 ### 1. Install Requirements
 
-Make sure you have Python 3.10+ installed.
+Make sure you have Python 3.12+ installed.
 
 Install dependencies:
 ```bash
@@ -55,7 +55,7 @@ uv sync
 uv run python main.py
 ```
 
-The app will open in your browser.
+The app GUI will open in a new window.
 
 ---
 
