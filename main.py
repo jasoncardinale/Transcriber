@@ -5,9 +5,9 @@ import sys
 if __name__ == "__main__" and sys.platform == "darwin":
     multiprocessing.set_start_method("fork", force=True)
 
-import static_ffmpeg
+from ffmpeg_setup import setup_ffmpeg
 
-static_ffmpeg.add_paths()
+setup_ffmpeg()
 
 import asyncio  # noqa: E402
 import os  # noqa: E402
