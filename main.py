@@ -163,7 +163,7 @@ def main(page: ft.Page):
             ft.Row(
                 [
                     ft.Button(
-                        "Browse Files",
+                        "Browse",
                         on_click=select_files,
                     ),
                 ]
@@ -179,7 +179,7 @@ def main(page: ft.Page):
                 [
                     output_dir_input,
                     ft.Button(
-                        "Browse Folder",
+                        "Browse",
                         on_click=select_output_directory,
                     ),
                 ]
@@ -410,7 +410,7 @@ def main(page: ft.Page):
                 [
                     view_dir_input,
                     ft.Button(
-                        "Browse Folder",
+                        "Browse",
                         on_click=select_viewed_directory,
                     ),
                 ]
