@@ -1,3 +1,9 @@
+import multiprocessing
+
+# Prevent macOS from spawning new app instances when using multiprocessing
+if __name__ == "__main__":
+    multiprocessing.set_start_method("fork", force=True)
+
 import static_ffmpeg
 
 static_ffmpeg.add_paths()
@@ -104,10 +110,6 @@ def main(page: ft.Page):
     )
 
     async def run_transcribe():
-        run_progress.visible = True
-        run_button.disabled = True
-        page.update()
-
         output_dir_value = output_dir_input.value
 
         if not audio_files or not output_dir_value:
@@ -118,6 +120,8 @@ def main(page: ft.Page):
         else:
             run_message.value = ""
             run_message.color = ""
+            run_button.disabled = True
+            run_progress.visible = True
             page.update()
 
         transcription_path = os.path.expanduser(output_dir_value)
@@ -128,8 +132,9 @@ def main(page: ft.Page):
             try:
                 filename = os.path.basename(file_path)
                 audio_path = os.path.join(transcription_path, filename)
-                with open(file_path, "rb") as src, open(audio_path, "wb") as dst:
-                    dst.write(src.read())
+                if os.path.abspath(file_path) != os.path.abspath(audio_path):
+                    with open(file_path, "rb") as src, open(audio_path, "wb") as dst:
+                        dst.write(src.read())
                 await asyncio.to_thread(transcribe, audio_path, transcription_path)
             except Exception as e:
                 errors.append(f"Unable to transcribe {filename}: {e}")
