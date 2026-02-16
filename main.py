@@ -221,7 +221,7 @@ def main(page: ft.Page):
             edit_dialog.content = edit_field
             edit_dialog.actions = [
                 ft.Button("Dismiss", on_click=close_edit_dialog),
-                ft.Button("Save", on_click=save_edit(existing.line_start, existing.line_end)),
+                ft.Button("Save", on_click=save_edit(existing)),
             ]
             edit_dialog.open = True
 
@@ -233,10 +233,10 @@ def main(page: ft.Page):
         edit_dialog.open = False
         page.update()
 
-    def save_edit(line_start: int, line_end: int):
+    def save_edit(existing: ParseResult):
         def _on_click():
             if edit_field.value:
-                edit_vtt(selected_vtt, line_start, line_end, edit_field.value)
+                edit_vtt(selected_vtt, existing.line_start, existing.line_end, edit_field.value)
             edit_dialog.open = False
             show_transcription(os.path.basename(selected_vtt))
 
