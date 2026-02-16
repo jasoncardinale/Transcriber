@@ -1,7 +1,8 @@
 import multiprocessing
+import sys
 
 # Prevent macOS from spawning new app instances when using multiprocessing
-if __name__ == "__main__":
+if __name__ == "__main__" and sys.platform == "darwin":
     multiprocessing.set_start_method("fork", force=True)
 
 import static_ffmpeg
