@@ -3,16 +3,12 @@
 Welcome! This app lets you easily transcribe your audio recordings into text using OpenAI Whisper.  
 You can upload audio files, generate transcriptions, and review/listen to your results.
 
----
-
 ## Features
 
 - **Easy Upload:** Drag and drop or browse for audio files.
 - **Fast Transcription:** Uses OpenAI Whisper for accurate speech-to-text.
 - **Organized Output:** Save transcriptions to a folder of your choice.
 - **Interactive Review:** Listen to your audio and click on transcript segments to jump to that part of the audio.
-
----
 
 ## Get Started
 
@@ -31,12 +27,9 @@ You can upload audio files, generate transcriptions, and review/listen to your r
 **Troubleshooting:**
 - If you see a security warning, you may need to allow the app to run in your system settings.
 
-
 ### Option 2: Run from Source
 
 If you prefer, you can run the app directly from Python source code. See the Development section below.
-
----
 
 ## Development
 
@@ -56,8 +49,6 @@ uv run python main.py
 ```
 
 The app GUI will open in a new window.
-
----
 
 ## How to Use
 
@@ -80,20 +71,14 @@ The app GUI will open in a new window.
 - Expand a file to listen to the audio and read the transcript.
 - Click on any transcript segment to jump to that part of the audio.
 
----
-
 ## Output
 
 - Transcriptions are saved as `.vtt` files in your chosen folder.
 - The original audio files are also saved in the same folder for easy playback so you may want to delete the audio files from their original location to save space.
 
----
-
 ## Credits
 
 - Built with [Flet](https://github.com/flet-dev/flet) and [OpenAI Whisper](https://github.com/openai/whisper).
-
----
 
 ## License
 
