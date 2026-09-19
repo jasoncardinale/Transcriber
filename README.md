@@ -1,7 +1,7 @@
 # Audio Transcription Tool
 
 Welcome! This app lets you easily transcribe your audio recordings into text using OpenAI Whisper.  
-You can upload audio files, generate transcriptions, and review/listen to your results—all in your browser.
+You can upload audio files, generate transcriptions, and review/listen to your results.
 
 ---
 
