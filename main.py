@@ -324,11 +324,8 @@ def main(page: ft.Page):
             end_timestamps.append(end_seconds)
             segment_controls.controls.append(
                 ft.ListTile(
-                    title=ft.Text(
-                        f"[{segment.start}] {segment.text}",
-                        no_wrap=False,
-                    ),
-                    on_click=make_segment_click(start_seconds),
+                    leading=ft.TextButton(f"[{segment.start}]", on_click=make_segment_click(start_seconds)),
+                    title=ft.Text(segment.text, no_wrap=False),
                     trailing=ft.IconButton(ft.Icons.EDIT, on_click=open_edit_dialog(segment)),
                     key=ft.ScrollKey(f"segment-{transcript_generation}-{i}"),
                 )
@@ -426,7 +423,7 @@ def main(page: ft.Page):
                 alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
             ),
             playback_controls,
-            ft.Container(content=segment_controls, expand=True),
+            ft.Container(content=ft.SelectionArea(content=segment_controls), expand=True),
             edit_dialog,
         ],
         expand=True,
