@@ -69,8 +69,8 @@ def main(page: ft.Page):
     )
 
     view_message = ft.Text("")
-    timestamp_controls = ft.ListView(scroll=ft.ScrollMode.ALWAYS, expand=True, spacing=2)
-    segment_controls = ft.ListView(scroll=ft.ScrollMode.ALWAYS, expand=True, spacing=2)
+    timestamp_controls = ft.Column(spacing=2)
+    segment_controls = ft.Column(spacing=2)
     end_timestamps: list[int] = []
     transcript_generation = 0
     playback_controls = ft.Row()
@@ -283,8 +283,7 @@ def main(page: ft.Page):
                 if not updated:
                     timestamp_controls.controls[i].opacity = 1.0
                     segment_controls.controls[i].opacity = 1.0
-                    await timestamp_controls.scroll_to(scroll_key=timestamp_controls.controls[i].key, duration=200)
-                    await segment_controls.scroll_to(scroll_key=segment_controls.controls[i].key, duration=200)
+                    await segment_view.scroll_to(scroll_key=segment_controls.controls[i].key, duration=200)
                     updated = True
 
     transcript_text = ft.Text("Select a transcript", size=22, weight=ft.FontWeight.BOLD, color="grey")
@@ -406,12 +405,18 @@ def main(page: ft.Page):
 
     select_transcript_button = ft.Button("Select transcript", visible=not vtt_list.visible, on_click=open_list)
 
-    segment_view = ft.Row(
+    segment_view = ft.Column(
         controls=[
-            ft.Container(content=timestamp_controls, width=130),
-            ft.Container(content=ft.SelectionArea(content=segment_controls), expand=True),
+            ft.Row(
+                controls=[
+                    ft.Container(content=timestamp_controls, width=130),
+                    ft.Container(content=ft.SelectionArea(content=segment_controls), expand=True),
+                ],
+                vertical_alignment=ft.CrossAxisAlignment.START,
+            ),
         ],
-        vertical_alignment=ft.CrossAxisAlignment.STRETCH,
+        horizontal_alignment=ft.CrossAxisAlignment.STRETCH,
+        scroll=ft.ScrollMode.ALWAYS,
         expand=True,
     )
 
