@@ -27,6 +27,10 @@ transcribe-cli = "transcribe.transcribe:transcribe_cli"
 [tool.flet]
 product = "Transcriber"
 
+[tool.flet.compile]
+# PyTorch inspects dependency source files at runtime.
+packages = false
+
 [tool.ruff]
 line-length = 160
 target-version = "py312"
