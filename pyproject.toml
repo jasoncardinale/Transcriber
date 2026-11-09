@@ -3,7 +3,7 @@ name = "transcribe"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
-requires-python = ">=3.12"
+requires-python = ">=3.14,<3.15"
 dependencies = [
     "flet>=0.80.5",
     "flet-audio>=0.80.5",
@@ -33,7 +33,7 @@ packages = false
 
 [tool.ruff]
 line-length = 160
-target-version = "py312"
+target-version = "py314"
 
 [tool.ruff.lint]
 select = ["E", "F", "I"]
