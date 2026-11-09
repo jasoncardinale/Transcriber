@@ -73,7 +73,13 @@ def main(page: ft.Page):
     segment_controls = ft.Column(spacing=2)
     end_timestamps: list[int] = []
     transcript_generation = 0
-    playback_controls = ft.Row()
+    playback_controls = ft.Row(tight=True)
+    transcript_search = ft.TextField(
+        prefix_icon=ft.Icons.SEARCH,
+        width=260,
+        dense=True,
+        visible=False,
+    )
 
     edit_dialog = ft.AlertDialog(title="Edit", open=False)
     edit_field = ft.TextField(multiline=True, width=600)
@@ -312,6 +318,8 @@ def main(page: ft.Page):
         selected_vtt = file_path
 
         segments = parse_vtt(file_path)
+        transcript_search.visible = True
+        transcript_search.value = ""
         timestamp_controls.controls.clear()
         segment_controls.controls.clear()
         end_timestamps.clear()
@@ -396,6 +404,8 @@ def main(page: ft.Page):
         select_transcript_button.visible = True
 
         playback_controls.controls.clear()
+        transcript_search.visible = False
+        transcript_search.value = ""
         timestamp_controls.controls.clear()
         segment_controls.controls.clear()
         end_timestamps.clear()
@@ -456,7 +466,10 @@ def main(page: ft.Page):
                 [transcript_text, select_transcript_button],
                 alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
             ),
-            playback_controls,
+            ft.Row(
+                controls=[playback_controls, transcript_search],
+                alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+            ),
             segment_view,
             edit_dialog,
         ],
