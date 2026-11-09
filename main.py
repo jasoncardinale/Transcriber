@@ -69,6 +69,7 @@ def main(page: ft.Page):
     )
 
     view_message = ft.Text("")
+    timestamp_controls = ft.ListView(scroll=ft.ScrollMode.ALWAYS, expand=True, spacing=2)
     segment_controls = ft.ListView(scroll=ft.ScrollMode.ALWAYS, expand=True, spacing=2)
     end_timestamps: list[int] = []
     transcript_generation = 0
@@ -276,10 +277,13 @@ def main(page: ft.Page):
         updated = False
 
         for i, t in enumerate(end_timestamps):
+            timestamp_controls.controls[i].opacity = 0.7
             segment_controls.controls[i].opacity = 0.7
             if t >= seconds:
                 if not updated:
+                    timestamp_controls.controls[i].opacity = 1.0
                     segment_controls.controls[i].opacity = 1.0
+                    await timestamp_controls.scroll_to(scroll_key=timestamp_controls.controls[i].key, duration=200)
                     await segment_controls.scroll_to(scroll_key=segment_controls.controls[i].key, duration=200)
                     updated = True
 
@@ -301,6 +305,7 @@ def main(page: ft.Page):
         selected_vtt = file_path
 
         segments = parse_vtt(file_path)
+        timestamp_controls.controls.clear()
         segment_controls.controls.clear()
         end_timestamps.clear()
         playback_controls.controls.clear()
@@ -322,9 +327,11 @@ def main(page: ft.Page):
             start_seconds = timestamp_to_seconds(segment.start)
             end_seconds = timestamp_to_seconds(segment.end)
             end_timestamps.append(end_seconds)
+            timestamp_controls.controls.append(
+                ft.TextButton(f"[{segment.start}]", on_click=make_segment_click(start_seconds), key=ft.ScrollKey(f"timestamp-{transcript_generation}-{i}"))
+            )
             segment_controls.controls.append(
                 ft.ListTile(
-                    leading=ft.TextButton(f"[{segment.start}]", on_click=make_segment_click(start_seconds)),
                     title=ft.Text(segment.text, no_wrap=False),
                     trailing=ft.IconButton(ft.Icons.EDIT, on_click=open_edit_dialog(segment)),
                     key=ft.ScrollKey(f"segment-{transcript_generation}-{i}"),
@@ -378,6 +385,7 @@ def main(page: ft.Page):
         select_transcript_button.visible = True
 
         playback_controls.controls.clear()
+        timestamp_controls.controls.clear()
         segment_controls.controls.clear()
         end_timestamps.clear()
         page.update()
@@ -397,6 +405,15 @@ def main(page: ft.Page):
         page.update()
 
     select_transcript_button = ft.Button("Select transcript", visible=not vtt_list.visible, on_click=open_list)
+
+    segment_view = ft.Row(
+        controls=[
+            ft.Container(content=timestamp_controls, width=130),
+            ft.Container(content=ft.SelectionArea(content=segment_controls), expand=True),
+        ],
+        vertical_alignment=ft.CrossAxisAlignment.STRETCH,
+        expand=True,
+    )
 
     view_tab = ft.Column(
         [
@@ -423,7 +440,7 @@ def main(page: ft.Page):
                 alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
             ),
             playback_controls,
-            ft.Container(content=ft.SelectionArea(content=segment_controls), expand=True),
+            segment_view,
             edit_dialog,
         ],
         expand=True,
