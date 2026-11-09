@@ -18,6 +18,7 @@ import flet as ft  # noqa: E402
 import flet_audio as fta  # noqa: E402
 
 from parser import ParseResult, edit_vtt, parse_vtt  # noqa: E402
+from search import find_matches  # noqa: E402
 from transcribe import transcribe  # noqa: E402
 from utils import timestamp_to_seconds  # noqa: E402
 
@@ -73,12 +74,20 @@ def main(page: ft.Page):
     segment_controls = ft.Column(spacing=2)
     end_timestamps: list[int] = []
     transcript_generation = 0
+    segment_texts: list[str] = []
+    search_matches: list[tuple[int, int, int]] = []
+    current_search_match = -1
     playback_controls = ft.Row(tight=True)
+    search_count = ft.Text(size=12)
+    search_clear = ft.IconButton(ft.Icons.CLOSE, visible=False)
+    search_previous = ft.IconButton(ft.Icons.KEYBOARD_ARROW_UP, disabled=True)
+    search_next = ft.IconButton(ft.Icons.KEYBOARD_ARROW_DOWN, disabled=True)
     transcript_search = ft.TextField(
         prefix_icon=ft.Icons.SEARCH,
+        suffix=search_count,
+        suffix_icon=search_clear,
         width=260,
         dense=True,
-        visible=False,
     )
 
     edit_dialog = ft.AlertDialog(title="Edit", open=False)
@@ -212,6 +221,101 @@ def main(page: ft.Page):
     )
 
     # --- View Tab ---
+    def reset_search():
+        nonlocal current_search_match
+
+        transcript_search.value = ""
+        search_matches.clear()
+        current_search_match = -1
+        search_count.value = ""
+        search_clear.visible = False
+        search_previous.disabled = True
+        search_next.disabled = True
+
+    def highlight_search_matches():
+        matches_by_segment: dict[int, list[tuple[int, int, int]]] = {}
+        for match_index, (segment_index, start, end) in enumerate(search_matches):
+            matches_by_segment.setdefault(segment_index, []).append((match_index, start, end))
+
+        for i, text in enumerate(segment_texts):
+            title = segment_controls.controls[i].title
+            matches = matches_by_segment.get(i, [])
+            spans: list[ft.TextSpan] = []
+            offset = 0
+            for match_index, start, end in matches:
+                if start > offset:
+                    spans.append(ft.TextSpan(text[offset:start]))
+                spans.append(
+                    ft.TextSpan(
+                        text[start:end],
+                        style=ft.TextStyle(
+                            bgcolor=ft.Colors.AMBER_700 if match_index == current_search_match else ft.Colors.YELLOW_200,
+                            color=ft.Colors.BLACK,
+                        ),
+                    )
+                )
+                offset = end
+            if matches and offset < len(text):
+                spans.append(ft.TextSpan(text[offset:]))
+            title.value = "" if matches else text
+            title.spans = spans
+
+        query = transcript_search.value or ""
+        search_count.value = f"{current_search_match + 1}/{len(search_matches)}" if search_matches else "No matches" if query.strip() else ""
+        search_clear.visible = bool(query)
+        search_previous.disabled = not search_matches
+        search_next.disabled = not search_matches
+
+    async def scroll_to_search_match():
+        if search_matches:
+            segment_index = search_matches[current_search_match][0]
+            await segment_view.scroll_to(scroll_key=segment_controls.controls[segment_index].key, duration=200)
+
+    async def search_transcript():
+        nonlocal current_search_match
+
+        search_matches[:] = find_matches(segment_texts, transcript_search.value or "")
+        current_search_match = 0 if search_matches else -1
+        highlight_search_matches()
+        page.update()
+        await scroll_to_search_match()
+
+    async def navigate_search(direction: int):
+        nonlocal current_search_match
+
+        if search_matches:
+            current_search_match = (current_search_match + direction) % len(search_matches)
+            highlight_search_matches()
+            page.update()
+            await scroll_to_search_match()
+
+    async def next_search_match():
+        await navigate_search(1)
+
+    async def previous_search_match():
+        await navigate_search(-1)
+
+    async def clear_search():
+        transcript_search.value = ""
+        await search_transcript()
+
+    transcript_search.on_change = search_transcript
+
+    search_previous.on_click = previous_search_match
+    search_next.on_click = next_search_match
+    search_clear.on_click = clear_search
+
+    search_controls = ft.Row(
+        controls=[
+            transcript_search,
+            search_previous,
+            search_next,
+        ],
+        spacing=0,
+        tight=True,
+        visible=False,
+    )
+
     vtt_list = ft.ListView(expand_loose=True, height=200, spacing=4, visible=False)
 
     view_dir_input = ft.TextField(
@@ -293,11 +397,15 @@ def main(page: ft.Page):
         for i, t in enumerate(end_timestamps):
             timestamp_controls.controls[i].opacity = 0.7
             segment_controls.controls[i].opacity = 0.7
+
             if t >= seconds:
                 if not updated:
                     timestamp_controls.controls[i].opacity = 1.0
                     segment_controls.controls[i].opacity = 1.0
-                    await segment_view.scroll_to(scroll_key=segment_controls.controls[i].key, duration=200)
+
+                    if not (transcript_search.value or "").strip():
+                        await segment_view.scroll_to(scroll_key=segment_controls.controls[i].key, duration=200)
+
                     updated = True
 
     transcript_text = ft.Text("Select a transcript", size=22, weight=ft.FontWeight.BOLD, color="grey")
@@ -318,8 +426,9 @@ def main(page: ft.Page):
         selected_vtt = file_path
 
         segments = parse_vtt(file_path)
-        transcript_search.visible = True
-        transcript_search.value = ""
+        search_controls.visible = True
+        reset_search()
+        segment_texts[:] = [segment.text for segment in segments]
         timestamp_controls.controls.clear()
         segment_controls.controls.clear()
         end_timestamps.clear()
@@ -404,8 +513,9 @@ def main(page: ft.Page):
         select_transcript_button.visible = True
 
         playback_controls.controls.clear()
-        transcript_search.visible = False
-        transcript_search.value = ""
+        search_controls.visible = False
+        reset_search()
+        segment_texts.clear()
         timestamp_controls.controls.clear()
         segment_controls.controls.clear()
         end_timestamps.clear()
@@ -467,7 +577,7 @@ def main(page: ft.Page):
                 alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
             ),
             ft.Row(
-                controls=[playback_controls, transcript_search],
+                controls=[playback_controls, search_controls],
                 alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
             ),
             segment_view,
