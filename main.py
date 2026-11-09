@@ -220,6 +220,14 @@ def main(page: ft.Page):
 
         return _on_click
 
+    def make_segment_size_change(timestamp_cell: ft.Container):
+        def _on_size_change(event: ft.LayoutSizeChangeEvent[ft.ListTile]):
+            if event.height > 0 and timestamp_cell.height != event.height:
+                timestamp_cell.height = event.height
+                timestamp_cell.update()
+
+        return _on_size_change
+
     def open_edit_dialog(existing: ParseResult):
         async def _on_click():
             if audio_player:
@@ -326,13 +334,17 @@ def main(page: ft.Page):
             start_seconds = timestamp_to_seconds(segment.start)
             end_seconds = timestamp_to_seconds(segment.end)
             end_timestamps.append(end_seconds)
-            timestamp_controls.controls.append(
-                ft.TextButton(f"[{segment.start}]", on_click=make_segment_click(start_seconds), key=ft.ScrollKey(f"timestamp-{transcript_generation}-{i}"))
+            timestamp_cell = ft.Container(
+                content=ft.TextButton(f"[{segment.start}]", on_click=make_segment_click(start_seconds)),
+                alignment=ft.Alignment.CENTER_LEFT,
+                key=ft.ScrollKey(f"timestamp-{transcript_generation}-{i}"),
             )
+            timestamp_controls.controls.append(timestamp_cell)
             segment_controls.controls.append(
                 ft.ListTile(
                     title=ft.Text(segment.text, no_wrap=False),
                     trailing=ft.IconButton(ft.Icons.EDIT, on_click=open_edit_dialog(segment)),
+                    on_size_change=make_segment_size_change(timestamp_cell),
                     key=ft.ScrollKey(f"segment-{transcript_generation}-{i}"),
                 )
             )
